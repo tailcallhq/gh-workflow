@@ -3,45 +3,22 @@ import {
   InputData,
   JSONSchemaInput,
   FetchingJSONSchemaStore,
+  RustTargetLanguage,
+  rustOptions,
 } from "quicktype-core";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 
 // Import node-fetch for Node.js environments
 import fetch from "node-fetch";
 
-// Function to add derive attributes to structs and enums in the Rust file
-function addDeriveToStructsAndEnums(content) {
-  // Regular expression to match Rust struct definitions
-  const structPattern = /^(?:\s*pub\s+)?struct\s+\w+/gm;
-  // Regular expression to match Rust enum definitions
-  const enumPattern = /^(?:\s*pub\s+)?enum\s+\w+/gm;
-
-  // Add #[derive(derive_setters::Setters, Clone)] above struct definitions
-  const updatedStructContent = content.replace(structPattern, (match) => {
-    return `#[derive(derive_setters::Setters, Clone)]\n${match}`;
-  });
-
-  // Add #[derive(Clone)] above enum definitions
-  const updatedEnumContent = updatedStructContent.replace(
-    enumPattern,
-    (match) => {
-      return `#[derive(Clone)]\n${match}`;
-    },
-  );
-
-  return updatedEnumContent;
-}
-
 async function main() {
   // Fetch the schema from the URL
   const response = await fetch(
-    "https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/github-workflow.json",
+    "https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/github-workflow.json"
   );
 
   // Parse the JSON schema
   const schema = await response.text();
-
-  console.log("Generating Rust code...");
 
   // Create a new JSONSchemaInput and add the schema
   const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
@@ -53,12 +30,23 @@ async function main() {
   // Call quicktype to generate Rust code from the schema
   const { lines } = await quicktype({
     inputData,
-    lang: "rust",
+    lang: new RustTargetLanguage(),
+
+    // Special Rust options
+    // https://github.com/glideapps/quicktype/blob/master/packages/quicktype-core/src/language/Rust/language.ts#L9
+    rendererOptions: {
+      "derive-clone": true,
+      "derive-debug": true,
+      "skip-serializing-none": true,
+      "derive-partial-eq": true,
+      visibility: "public",
+      "leading-comments": false,
+    },
   });
 
   let code = lines.join("\n");
-  let derivedCode = addDeriveToStructsAndEnums(code);
-  fs.writeFileSync("workspace/gh-workflow-rs/src/model.rs", derivedCode);
+  // let derivedCode = addDeriveToStructsAndEnums(code);
+  await fs.writeFile("workspace/gh-workflow-rs/src/model.rs", code);
 }
 
 // Run the main function
