@@ -13,9 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "fetch": "^1.1.0",
+    "fs": "^0.0.1-security",
     "node-fetch": "^3.3.2",
-    "punycode": "^2.3.1",
-    "quicktype-core": "^23.0.170",
-    "fs": "^0.0.1-security"
+    "quicktype-core": "^23.0.170"
   }
 }
