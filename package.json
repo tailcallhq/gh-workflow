@@ -5,7 +5,10 @@
   "scripts": {
     "generate": "node --experimental-strip-types ./generate.ts"
   },
-  "author": "",
+  "author": "Tushar Mathur <tusharmath@gmail.com>",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "license": "ISC",
   "dependencies": {
     "fetch": "^1.1.0",
