@@ -16,5 +16,8 @@
     "fs": "^0.0.1-security",
     "node-fetch": "^3.3.2",
     "quicktype-core": "^23.0.170"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5"
   }
 }
