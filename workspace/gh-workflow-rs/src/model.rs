@@ -16,6 +16,7 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Model {
     #[serde(rename = "$schema")]
     schema: String,
@@ -40,6 +41,7 @@ pub struct Model {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Definitions {
     architecture: Architecture,
 
@@ -101,6 +103,7 @@ pub struct Definitions {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Architecture {
     #[serde(rename = "type")]
     architecture_type: TypeElement,
@@ -111,6 +114,7 @@ pub struct Architecture {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Clone)]
 pub enum TypeElement {
     Boolean,
 
@@ -120,6 +124,7 @@ pub enum TypeElement {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Branch {
     #[serde(rename = "$comment")]
     comment: String,
@@ -133,6 +138,7 @@ pub struct Branch {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
 pub enum BranchRef {
     #[serde(rename = "#/definitions/defaults")]
     DefinitionsDefaults,
@@ -148,6 +154,7 @@ pub enum BranchRef {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct BranchProperties {
     args: Option<Args>,
 
@@ -157,6 +164,7 @@ pub struct BranchProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Args {
     #[serde(rename = "$comment")]
     comment: String,
@@ -166,6 +174,7 @@ pub struct Args {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Types {
     #[serde(rename = "$ref")]
     types_ref: TypesRef,
@@ -177,6 +186,7 @@ pub struct Types {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
 pub enum TypesRef {
     #[serde(rename = "#/definitions/types")]
     DefinitionsTypes,
@@ -184,6 +194,7 @@ pub enum TypesRef {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct DefinitionsConcurrency {
     #[serde(rename = "type")]
     concurrency_type: GroupType,
@@ -197,6 +208,7 @@ pub struct DefinitionsConcurrency {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Clone)]
 pub enum GroupType {
     Boolean,
 
@@ -207,6 +219,7 @@ pub enum GroupType {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ConcurrencyProperties {
     group: GroupClass,
 
@@ -215,6 +228,7 @@ pub struct ConcurrencyProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct CancelInProgressClass {
     #[serde(rename = "$comment")]
     comment: String,
@@ -232,6 +246,7 @@ pub struct CancelInProgressClass {
 
 #[derive(Serialize, Deserialize)]
 #[serde(untagged)]
+#[derive(Clone)]
 pub enum DefaultUnion {
     Bool(bool),
 
@@ -239,6 +254,7 @@ pub enum DefaultUnion {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ConcurrencyOneOf {
     #[serde(rename = "type")]
     one_of_type: Option<TypeElement>,
@@ -249,6 +265,7 @@ pub struct ConcurrencyOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct GroupClass {
     #[serde(rename = "$comment")]
     comment: String,
@@ -267,12 +284,14 @@ pub struct GroupClass {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PermissionsValue {
     #[serde(rename = "$ref")]
     permissions_ref: String,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct NameProperties {
     username: OneOf,
 
@@ -280,6 +299,7 @@ pub struct NameProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct OneOf {
     #[serde(rename = "type")]
     one_of_type: String,
@@ -287,12 +307,14 @@ pub struct OneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Configuration {
     one_of: Vec<ConfigurationOneOf>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ConfigurationOneOf {
     #[serde(rename = "type")]
     one_of_type: String,
@@ -304,6 +326,7 @@ pub struct ConfigurationOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Container {
     #[serde(rename = "type")]
     container_type: GroupType,
@@ -316,6 +339,7 @@ pub struct Container {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ContainerProperties {
     image: GroupClass,
 
@@ -332,6 +356,7 @@ pub struct ContainerProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Ports {
     #[serde(rename = "$comment")]
     comment: String,
@@ -348,12 +373,14 @@ pub struct Ports {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AdditionalPropertiesClass {
     one_of: Vec<OneOf>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Volumes {
     #[serde(rename = "$comment")]
     comment: String,
@@ -369,6 +396,7 @@ pub struct Volumes {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ItemsClass {
     #[serde(rename = "type")]
     name_type: TypeElement,
@@ -378,6 +406,7 @@ pub struct ItemsClass {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Defaults {
     #[serde(rename = "type")]
     defaults_type: GroupType,
@@ -390,12 +419,14 @@ pub struct Defaults {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PurpleProperties {
     run: Run,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Run {
     #[serde(rename = "type")]
     run_type: GroupType,
@@ -409,6 +440,7 @@ pub struct Run {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct FluffyProperties {
     shell: PermissionsValue,
 
@@ -417,6 +449,7 @@ pub struct FluffyProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Ref {
     properties: RefProperties,
 
@@ -425,6 +458,7 @@ pub struct Ref {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct RefOneOf {
     #[serde(rename = "type")]
     one_of_type: String,
@@ -433,17 +467,20 @@ pub struct RefOneOf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct OneOfAllOf {
     not: Not,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Not {
     required: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct RefProperties {
     branches: PermissionsValue,
 
@@ -460,6 +497,7 @@ pub struct RefProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Env {
     #[serde(rename = "$comment")]
     comment: String,
@@ -471,6 +509,7 @@ pub struct Env {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct EnvOneOf {
     #[serde(rename = "type")]
     one_of_type: Option<GroupType>,
@@ -483,6 +522,7 @@ pub struct EnvOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Environment {
     #[serde(rename = "$comment")]
     comment: String,
@@ -500,6 +540,7 @@ pub struct Environment {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct EnvironmentProperties {
     name: GroupClass,
 
@@ -507,6 +548,7 @@ pub struct EnvironmentProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Event {
     #[serde(rename = "$comment")]
     comment: Option<String>,
@@ -520,6 +562,7 @@ pub struct Event {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct EventObject {
     one_of: Vec<OneOf>,
 
@@ -528,6 +571,7 @@ pub struct EventObject {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ExpressionSyntax {
     #[serde(rename = "$comment")]
     comment: String,
@@ -546,6 +590,7 @@ pub struct ExpressionSyntax {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ExpressionSyntaxItems {
     properties: Option<ItemsProperties>,
 
@@ -556,12 +601,14 @@ pub struct ExpressionSyntaxItems {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ItemsProperties {
     cron: OneOf,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Globs {
     #[serde(rename = "type")]
     globs_type: String,
@@ -573,6 +620,7 @@ pub struct Globs {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct GlobsItems {
     #[serde(rename = "type")]
     items_type: TypeElement,
@@ -582,6 +630,7 @@ pub struct GlobsItems {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct JobNeeds {
     #[serde(rename = "$comment")]
     comment: String,
@@ -593,6 +642,7 @@ pub struct JobNeeds {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct JobNeedsOneOf {
     #[serde(rename = "type")]
     one_of_type: Option<String>,
@@ -607,6 +657,7 @@ pub struct JobNeedsOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Matrix {
     #[serde(rename = "$comment")]
     comment: String,
@@ -618,6 +669,7 @@ pub struct Matrix {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct MatrixOneOf {
     #[serde(rename = "type")]
     one_of_type: Option<GroupType>,
@@ -634,11 +686,13 @@ pub struct MatrixOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AdditionalProperties {
     one_of: Vec<JobNeedsOneOf>,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct OneOfPatternProperties {
     #[serde(rename = "^(in|ex)clude$")]
     in_ex_clude: InExClude,
@@ -646,6 +700,7 @@ pub struct OneOfPatternProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct InExClude {
     #[serde(rename = "$comment")]
     comment: String,
@@ -655,6 +710,7 @@ pub struct InExClude {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct InExCludeOneOf {
     #[serde(rename = "$ref")]
     one_of_ref: Option<String>,
@@ -669,6 +725,7 @@ pub struct InExCludeOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PurpleItems {
     #[serde(rename = "type")]
     items_type: GroupType,
@@ -678,6 +735,7 @@ pub struct PurpleItems {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct NormalJob {
     #[serde(rename = "$comment")]
     comment: String,
@@ -696,6 +754,7 @@ pub struct NormalJob {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct NormalJobProperties {
     name: GroupClass,
 
@@ -733,6 +792,7 @@ pub struct NormalJobProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Outputs {
     #[serde(rename = "$comment")]
     comment: String,
@@ -748,6 +808,7 @@ pub struct Outputs {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct MaxParallelClass {
     #[serde(rename = "$comment")]
     comment: String,
@@ -760,6 +821,7 @@ pub struct MaxParallelClass {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct RunsOn {
     #[serde(rename = "$comment")]
     comment: String,
@@ -771,6 +833,7 @@ pub struct RunsOn {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct RunsOnAnyOf {
     #[serde(rename = "$comment")]
     comment: Option<String>,
@@ -788,6 +851,7 @@ pub struct RunsOnAnyOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AnyOfAnyOf {
     items: Vec<OneOf>,
 
@@ -795,6 +859,7 @@ pub struct AnyOfAnyOf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AnyOfProperties {
     group: OneOf,
 
@@ -803,11 +868,13 @@ pub struct AnyOfProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Labels {
     one_of: Vec<BrancheTagPathSIgnore>,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct BrancheTagPathSIgnore {
     #[serde(rename = "type")]
     branche_tag_path_s_ignore_type: String,
@@ -817,6 +884,7 @@ pub struct BrancheTagPathSIgnore {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Steps {
     #[serde(rename = "$comment")]
     comment: String,
@@ -833,12 +901,14 @@ pub struct Steps {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct StepsItems {
     all_of: Vec<ItemsAllOf>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ItemsAllOf {
     one_of: Option<Vec<AllOfOneOf>>,
 
@@ -854,6 +924,7 @@ pub struct ItemsAllOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Dependencies {
     working_directory: Vec<String>,
 
@@ -861,6 +932,7 @@ pub struct Dependencies {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AllOfOneOf {
     #[serde(rename = "type")]
     one_of_type: GroupType,
@@ -871,6 +943,7 @@ pub struct AllOfOneOf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct TentacledProperties {
     uses: Option<OneOf>,
 
@@ -879,6 +952,7 @@ pub struct TentacledProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AllOfProperties {
     id: GroupClass,
 
@@ -906,6 +980,7 @@ pub struct AllOfProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Strategy {
     #[serde(rename = "$comment")]
     comment: String,
@@ -924,6 +999,7 @@ pub struct Strategy {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct StrategyProperties {
     matrix: PermissionsValue,
 
@@ -934,6 +1010,7 @@ pub struct StrategyProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct SecretsClass {
     #[serde(rename = "$comment")]
     comment: String,
@@ -944,6 +1021,7 @@ pub struct SecretsClass {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PermissionsOneOf {
     #[serde(rename = "type")]
     one_of_type: Option<TypeElement>,
@@ -957,6 +1035,7 @@ pub struct PermissionsOneOf {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PermissionsEvent {
     #[serde(rename = "type")]
     permissions_event_type: GroupType,
@@ -968,6 +1047,7 @@ pub struct PermissionsEvent {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ReusableWorkflowCallJob {
     #[serde(rename = "$comment")]
     comment: String,
@@ -985,6 +1065,7 @@ pub struct ReusableWorkflowCallJob {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ReusableWorkflowCallJobProperties {
     name: GroupClass,
 
@@ -1008,6 +1089,7 @@ pub struct ReusableWorkflowCallJobProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Shell {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1019,6 +1101,7 @@ pub struct Shell {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ModelProperties {
     name: GroupClass,
 
@@ -1039,6 +1122,7 @@ pub struct ModelProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Jobs {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1056,6 +1140,7 @@ pub struct Jobs {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct JobsPatternProperties {
     #[serde(rename = "^[_a-zA-Z][a-zA-Z0-9_-]*$")]
     a_z_a_z_a_z_a_z0_9_: PurpleAZAZAZAZ09_,
@@ -1063,12 +1148,14 @@ pub struct JobsPatternProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PurpleAZAZAZAZ09_ {
     one_of: Vec<PermissionsValue>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct On {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1080,6 +1167,7 @@ pub struct On {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct OnOneOf {
     #[serde(rename = "$ref")]
     one_of_ref: Option<String>,
@@ -1097,6 +1185,7 @@ pub struct OnOneOf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct StickyProperties {
     branch_protection_rule: Branch,
 
@@ -1171,6 +1260,7 @@ pub struct StickyProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PullRequest {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1188,18 +1278,21 @@ pub struct PullRequest {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PullRequestPatternProperties {
     #[serde(rename = "^(branche|tag|path)s(-ignore)?$")]
     branche_tag_path_s_ignore: OneOf,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PullRequestProperties {
     types: Types,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PullRequestTarget {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1217,17 +1310,20 @@ pub struct PullRequestTarget {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PullRequestTargetPatternProperties {
     #[serde(rename = "^(branche|tag|path)s(-ignore)?$")]
     branche_tag_path_s_ignore: BranchesIgnore,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct BranchesIgnore {
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Push {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1243,12 +1339,14 @@ pub struct Push {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PushPatternProperties {
     #[serde(rename = "^(branche|tag|path)s(-ignore)?$")]
     branche_tag_path_s_ignore: BrancheTagPathSIgnore,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowCall {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1259,6 +1357,7 @@ pub struct WorkflowCall {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowCallProperties {
     inputs: PurpleInputs,
 
@@ -1267,6 +1366,7 @@ pub struct WorkflowCallProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PurpleInputs {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1282,6 +1382,7 @@ pub struct PurpleInputs {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct PurplePatternProperties {
     #[serde(rename = "^[_a-zA-Z][a-zA-Z0-9_-]*$")]
     a_z_a_z_a_z_a_z0_9_: FluffyAZAZAZAZ09_,
@@ -1289,6 +1390,7 @@ pub struct PurplePatternProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct FluffyAZAZAZAZ09_ {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1307,6 +1409,7 @@ pub struct FluffyAZAZAZAZ09_ {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct IndigoProperties {
     description: GroupClass,
 
@@ -1322,6 +1425,7 @@ pub struct IndigoProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Description {
     description: String,
 
@@ -1331,6 +1435,7 @@ pub struct Description {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowDispatch {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1345,6 +1450,7 @@ pub struct WorkflowDispatch {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowDispatchPatternProperties {
     #[serde(rename = "^[_a-zA-Z][a-zA-Z0-9_-]*$")]
     a_z_a_z_a_z_a_z0_9_: TentacledAZAZAZAZ09_,
@@ -1352,6 +1458,7 @@ pub struct WorkflowDispatchPatternProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct TentacledAZAZAZAZ09_ {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1366,6 +1473,7 @@ pub struct TentacledAZAZAZAZ09_ {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct IndecentProperties {
     description: Description,
 
@@ -1373,12 +1481,14 @@ pub struct IndecentProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowDispatchProperties {
     inputs: FluffyInputs,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct FluffyInputs {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1394,6 +1504,7 @@ pub struct FluffyInputs {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct FluffyPatternProperties {
     #[serde(rename = "^[_a-zA-Z][a-zA-Z0-9_-]*$")]
     a_z_a_z_a_z_a_z0_9_: StickyAZAZAZAZ09_,
@@ -1401,6 +1512,7 @@ pub struct FluffyPatternProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct StickyAZAZAZAZ09_ {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1420,6 +1532,7 @@ pub struct StickyAZAZAZAZ09_ {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AZAZAZAZ09__AllOf {
     #[serde(rename = "if")]
     all_of_if: AllOfIf,
@@ -1428,6 +1541,7 @@ pub struct AZAZAZAZ09__AllOf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct AllOfIf {
     properties: IfProperties,
 
@@ -1435,18 +1549,21 @@ pub struct AllOfIf {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct IfProperties {
     #[serde(rename = "type")]
     properties_type: TypeClass,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct TypeClass {
     #[serde(rename = "const")]
     type_const: String,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Then {
     properties: Option<ThenProperties>,
 
@@ -1454,6 +1571,7 @@ pub struct Then {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct ThenProperties {
     #[serde(rename = "default")]
     properties_default: OneOf,
@@ -1461,6 +1579,7 @@ pub struct ThenProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct HilariousProperties {
     description: GroupClass,
 
@@ -1478,6 +1597,7 @@ pub struct HilariousProperties {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct DefaultClass {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1487,6 +1607,7 @@ pub struct DefaultClass {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowRun {
     #[serde(rename = "$comment")]
     comment: String,
@@ -1502,12 +1623,14 @@ pub struct WorkflowRun {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowRunPatternProperties {
     #[serde(rename = "^branches(-ignore)?$")]
     branches_ignore: BranchesIgnore,
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(derive_setters::Setters, Clone)]
 pub struct WorkflowRunProperties {
     types: Types,
 
@@ -1516,6 +1639,7 @@ pub struct WorkflowRunProperties {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(derive_setters::Setters, Clone)]
 pub struct Workflows {
     #[serde(rename = "type")]
     workflows_type: String,
