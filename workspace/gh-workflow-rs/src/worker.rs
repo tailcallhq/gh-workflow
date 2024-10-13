@@ -116,4 +116,40 @@ mod tests {
         let result = worker.compare(workflow).await;
         assert!(result.is_ok());
     }
+
+    #[tokio::test]
+    async fn test_worker_compare_mismatch() {
+        let workflow_1 = Workflow {
+            name: "Test Workflow".to_string(),
+            on: On {
+                push: Branches { branches: vec!["main".to_string()] },
+                pull_request: Branches { branches: vec!["main".to_string()] },
+            },
+            jobs: Jobs {
+                build: Job {
+                    runs_on: "ubuntu-latest".to_string(),
+                    steps: vec![],
+                },
+            },
+        };
+    
+        let workflow_2 = Workflow {
+            name: "Different Workflow".to_string(),
+            on: On {
+                push: Branches { branches: vec!["main".to_string()] },
+                pull_request: Branches { branches: vec!["main".to_string()] },
+            },
+            jobs: Jobs {
+                build: Job {
+                    runs_on: "ubuntu-latest".to_string(),
+                    steps: vec![],
+                },
+            },
+        };
+    
+        let worker = Worker::new(workflow_1.clone());
+        let result = worker.compare(workflow_2).await;
+        assert!(result.is_err());
+    }
+    
 }
