@@ -1,6 +1,6 @@
-# Setup
+# Updating `model.rs`
 
-Assuming that (npm)[https://www.npmjs.com/] installed, run the following command to install the required packages:
+The logic to update model.rs is written in `generate.ts` and uses [QuickType](https://github.com/glideapps/quicktype) to generate Rust classes from JSON schema.
 
 ```bash
 npm run generate
