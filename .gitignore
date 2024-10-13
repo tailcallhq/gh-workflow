@@ -1,3 +1,4 @@
 /target
 .js
 .js.map
+*.tsconfig.tsbuildinfo
