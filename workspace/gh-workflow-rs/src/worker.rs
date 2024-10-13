@@ -3,7 +3,7 @@ use derive_setters::Setters;
 use crate::error::{Error, Result};
 use crate::Workflow;
 
-#[derive(Setters)]
+#[derive(Setters, Debug)]
 pub struct Worker {
     workflow: Workflow,
     file: String,
@@ -35,5 +35,85 @@ impl Worker {
         } else {
             Ok(())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Branches, Job, Jobs, On};
+
+    use super::*;
+    use insta::assert_snapshot;
+
+    #[test]
+    fn test_worker_new() {
+        let workflow = Workflow {
+            name: "Test Workflow".to_string(),
+            on: On {
+                push: Branches {
+                    branches: vec!["main".to_string()],
+                },
+                pull_request: Branches {
+                    branches: vec!["main".to_string()],
+                },
+            },
+            jobs: Jobs {
+                build: Job {
+                    runs_on: "ubuntu-latest".to_string(),
+                    steps: vec![],
+                },
+            },
+        };
+        let worker = Worker::new(workflow.clone());
+        let generated = worker.generate().unwrap();
+        assert_snapshot!(generated);
+    }
+
+    #[test]
+    fn test_worker_generate() {
+        let workflow = Workflow {
+            name: "Test Workflow".to_string(),
+            on: On {
+                push: Branches {
+                    branches: vec!["main".to_string()],
+                },
+                pull_request: Branches {
+                    branches: vec!["main".to_string()],
+                },
+            },
+            jobs: Jobs {
+                build: Job {
+                    runs_on: "ubuntu-latest".to_string(),
+                    steps: vec![],
+                },
+            },
+        };
+        let worker = Worker::new(workflow.clone());
+        let generated = worker.generate().unwrap();
+        assert_snapshot!(generated);
+    }
+
+    #[tokio::test]
+    async fn test_worker_compare() {
+        let workflow = Workflow {
+            name: "Test Workflow".to_string(),
+            on: On {
+                push: Branches {
+                    branches: vec!["main".to_string()],
+                },
+                pull_request: Branches {
+                    branches: vec!["main".to_string()],
+                },
+            },
+            jobs: Jobs {
+                build: Job {
+                    runs_on: "ubuntu-latest".to_string(),
+                    steps: vec![],
+                },
+            },
+        };
+        let worker = Worker::new(workflow.clone());
+        let result = worker.compare(workflow).await;
+        assert!(result.is_ok());
     }
 }

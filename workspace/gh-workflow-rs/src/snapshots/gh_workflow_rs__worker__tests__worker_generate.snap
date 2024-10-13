@@ -1,0 +1,16 @@
+---
+source: workspace/gh-workflow-rs/src/worker.rs
+expression: generated
+---
+name: Test Workflow
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: []
