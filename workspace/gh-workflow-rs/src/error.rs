@@ -2,7 +2,8 @@
 pub enum Error {
     Io(std::io::Error),
     Yaml(serde_yaml::Error),
-    WorkflowMismatch,
+    GitHubWorkflowMismatch,
+    JobIdAlreadyExists(String),
 }
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;

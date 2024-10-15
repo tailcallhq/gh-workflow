@@ -31,7 +31,7 @@ impl Worker {
         let actual = serde_yaml::to_string(&actual)?;
 
         if actual != expected {
-            Err(Error::WorkflowMismatch)
+            Err(Error::GitHubWorkflowMismatch)
         } else {
             Ok(())
         }
