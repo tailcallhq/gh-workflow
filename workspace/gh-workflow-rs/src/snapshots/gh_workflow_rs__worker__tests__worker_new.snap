@@ -4,13 +4,12 @@ expression: generated
 ---
 name: Test Workflow
 on:
-  push:
-    branches:
-    - main
-  pull_request:
-    branches:
-    - main
+- event: push
+  branches:
+  - main
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps: []
+    runs-on:
+    - windows
+    steps:
+    - run: echo Hello World
