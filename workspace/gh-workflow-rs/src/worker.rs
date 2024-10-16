@@ -95,7 +95,6 @@ mod tests {
         let workflow = create_test_workflow();
         let worker = Worker::new(workflow.clone());
         let generated = worker.generate().unwrap();
-        // Snapshot test for the generated YAML from the new Worker
         assert_snapshot!(generated);
     }
 
@@ -104,7 +103,6 @@ mod tests {
         let workflow = create_test_workflow();
         let worker = Worker::new(workflow.clone());
         let generated = worker.generate().unwrap();
-        // Snapshot test for the generated workflow
         assert_snapshot!(generated);
     }
 
