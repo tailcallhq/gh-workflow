@@ -58,9 +58,9 @@ pub struct Workflow {
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<WorkflowOn>,
-    pub jobs: IndexMap<String, Job>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
+    pub jobs: IndexMap<String, Job>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -98,8 +98,8 @@ impl Workflow {
             name: Some(name),
             on: Default::default(),
             run_name: Default::default(),
-            jobs: Default::default(),
             concurrency: Default::default(),
+            jobs: Default::default(),
             defaults: Default::default(),
             secrets: Default::default(),
             env: Default::default(),
@@ -477,7 +477,7 @@ mod tests {
         let parsed = Workflow::parse(content).unwrap();
         let actual = parsed.to_string().unwrap();
         // Normalize line endings to Unix format
-        let expected = content.replace("\r\n", "\n").trim_end().to_string();
+        let expected = content.to_string();
         (actual, expected)
     }
 

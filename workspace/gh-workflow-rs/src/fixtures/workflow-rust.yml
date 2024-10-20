@@ -16,10 +16,6 @@ jobs:
         - ubuntu-latest
         - windows-latest
         - macos-latest
-        rust:
-        - stable
-        - beta
-        - nightly
     steps:
     - name: Checkout code
       uses: actions/checkout@v3

@@ -10,6 +10,8 @@ on:
     - opened
     - reopened
     - synchronize
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   setup_build_matrix:
     name: Outputs matrix used for cross compilation
@@ -420,5 +422,3 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
