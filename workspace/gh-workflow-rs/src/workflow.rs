@@ -107,7 +107,10 @@ impl Workflow {
         }
     }
     pub fn to_string(&self) -> Result<String> {
-        Ok(serde_yaml::to_string(self)?)
+        let yaml_output = serde_yaml::to_string(self)?;
+        // Normalize line endings to Unix-style before returning the string
+        let normalized_output = yaml_output.replace("\r\n", "\n").trim_end().to_string();
+        Ok(normalized_output)
     }
 
     pub fn add_job(mut self, id: String, job: crate::Job) -> Result<Self> {
@@ -161,6 +164,8 @@ pub struct Job {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub runs_on: Option<JobRunsOn>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strategy: Option<Strategy>,
     pub steps: Vec<Step>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
@@ -168,8 +173,6 @@ pub struct Job {
     pub needs: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<Environment>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -468,20 +471,25 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::*;
-
+    #[test]
     fn test_workflow_bench() {
         let workflow = include_str!("./fixtures/workflow-bench.yml");
         let parsed = Workflow::parse(workflow).unwrap();
         let actual = parsed.to_string().unwrap();
-        let expected = workflow;
+        // Normalize line endings to Unix format
+        let binding = workflow.replace("\r\n", "\n");
+        let expected: &str = binding.trim_end();
         assert_eq!(actual, expected);
     }
 
+    #[test]
     fn test_workflow_ci() {
         let workflow = include_str!("./fixtures/workflow-ci.yml");
         let parsed = Workflow::parse(workflow).unwrap();
         let actual = parsed.to_string().unwrap();
-        let expected = workflow;
+        // Normalize line endings to Unix format
+        let binding = workflow.replace("\r\n", "\n");
+        let expected: &str = binding.trim_end();
         assert_eq!(actual, expected);
     }
 
@@ -490,7 +498,9 @@ mod tests {
         let workflow = include_str!("./fixtures/workflow-demo.yml");
         let parsed = Workflow::parse(workflow).unwrap();
         let actual = parsed.to_string().unwrap();
-        let expected = workflow;
+        // Normalize line endings to Unix format
+        let binding = workflow.replace("\r\n", "\n");
+        let expected: &str = binding.trim_end();
         assert_eq!(actual, expected);
     }
 
@@ -499,7 +509,9 @@ mod tests {
         let workflow = include_str!("./fixtures/workflow-rust.yml");
         let parsed = Workflow::parse(workflow).unwrap();
         let actual = parsed.to_string().unwrap();
-        let expected = workflow;
+        // Normalize line endings to Unix format
+        let binding = workflow.replace("\r\n", "\n");
+        let expected: &str = binding.trim_end();
         assert_eq!(actual, expected);
     }
 }
