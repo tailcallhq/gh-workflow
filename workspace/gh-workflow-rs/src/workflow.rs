@@ -319,7 +319,6 @@ pub struct Concurrency {
     pub limit: Option<u32>,
 }
 
-
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option)]
@@ -356,7 +355,6 @@ pub enum PermissionLevel {
     Write,
     None,
 }
-
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
