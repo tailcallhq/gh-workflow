@@ -21,7 +21,7 @@ concurrency:
 jobs:
   setup_build_matrix:
     name: Outputs matrix used for cross compilation
-    uses:
+    uses: ./fixtures/build_matrix.yml
 
   check_if_build:
     name: Check if Build
@@ -113,7 +113,8 @@ jobs:
   test:
     name: Run Tests on ${{ matrix.build }}
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-    needs: setup_build_matrix
+    needs:
+      - setup_build_matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.setup_build_matrix.outputs.matrix) }}
