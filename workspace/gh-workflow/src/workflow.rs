@@ -206,7 +206,7 @@ pub struct Job {
 pub enum OneOrManyOrObject<T> {
     Single(T),
     Multiple(Vec<T>),
-    KeyValue(IndexMap<String, T>),
+    KeyValue(IndexMap<String, OneOrManyOrObject<T>>),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -372,7 +372,7 @@ pub enum PermissionLevel {
 #[setters(strip_option)]
 pub struct Strategy {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub matrix: Option<IndexMap<String, Vec<String>>>,
+    pub matrix: Option<OneOrManyOrObject<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_fast: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -419,8 +419,15 @@ pub struct RetryDefaults {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-#[serde(rename_all = "kebab-case")]
 pub struct Expression(String);
+
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[serde(rename_all = "kebab-case")]
+#[setters(strip_option)]
+pub struct ParsedExpression {
+    pub variables: Vec<String>, // Represents variables used within the expression
+    pub functions: Vec<String>, // Represents functions or operators used within the expression
+}
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
