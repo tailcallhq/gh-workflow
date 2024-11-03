@@ -55,6 +55,9 @@ pub struct Workflow {
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<WorkflowOn>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub jobs: IndexMap<String, Job>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
@@ -93,6 +96,7 @@ impl Workflow {
     pub fn new(name: String) -> Self {
         Self {
             name: Some(name),
+            permissions: Default::default(),
             on: Default::default(),
             run_name: Default::default(),
             jobs: Default::default(),
@@ -155,9 +159,15 @@ pub struct EventConfig {
 #[setters(strip_option)]
 pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub needs: Option<OneOrMany<String>>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
+    pub if_condition: Option<Expression>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub runs_on: Option<Ref>,
+    pub runs_on: Option<OneOrManyOrObject<String>>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "env")]
+    pub environment: Option<IndexMap<String, Expression>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -165,19 +175,13 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub needs: Option<Ref>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub environment: Option<Environment>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub outputs: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub if_condition: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub services: Option<IndexMap<String, Container>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -197,10 +201,18 @@ pub struct Job {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
-pub enum Ref {
-    Single(String),
-    Multiple(Vec<String>),
-    KeyValue(IndexMap<String, String>),
+pub enum OneOrManyOrObject<T> {
+    Single(T),
+    Multiple(Vec<T>),
+    KeyValue(IndexMap<String, T>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+#[serde(untagged)]
+pub enum OneOrMany<T> {
+    Single(T),
+    Multiple(Vec<T>),
 }
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
@@ -211,6 +223,8 @@ pub struct Step {
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
+    pub if_condition: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -219,8 +233,6 @@ pub struct Step {
     pub run: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<IndexMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub if_condition: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -404,24 +416,9 @@ pub struct RetryDefaults {
     pub max_attempts: Option<u32>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
-pub struct Expression {
-    pub value: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parsed: Option<ParsedExpression>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub evaluation_result: Option<bool>,
-}
-
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-#[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
-pub struct ParsedExpression {
-    pub variables: Vec<String>, // Represents variables used within the expression
-    pub functions: Vec<String>, // Represents functions or operators used within the expression
-}
+pub struct Expression(String);
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
