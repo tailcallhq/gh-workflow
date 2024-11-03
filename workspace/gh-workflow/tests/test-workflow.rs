@@ -1,6 +1,6 @@
 #[cfg(test)]
-mod tests {
-    use gh_workflow_rs::Workflow;
+mod test {
+    use gh_workflow::Workflow;
     use pretty_assertions::assert_eq;
     use serde_json::Value;
 

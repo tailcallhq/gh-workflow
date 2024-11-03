@@ -164,8 +164,8 @@ pub struct Job {
     pub steps: Vec<Step>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub needs: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub needs: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
