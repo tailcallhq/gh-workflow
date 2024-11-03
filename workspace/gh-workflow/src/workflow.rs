@@ -157,15 +157,15 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub runs_on: Option<JobRunsOn>,
+    pub runs_on: Option<Ref>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub steps: Vec<Step>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub steps: Option<Vec<Step>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub needs: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub needs: Option<Ref>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -197,7 +197,7 @@ pub struct Job {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
-pub enum JobRunsOn {
+pub enum Ref {
     Single(String),
     Multiple(Vec<String>),
     KeyValue(IndexMap<String, String>),
@@ -347,9 +347,9 @@ pub struct Permissions {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum PermissionLevel {
-    #[default]
     Read,
     Write,
+    #[default]
     None,
 }
 
