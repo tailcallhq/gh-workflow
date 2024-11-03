@@ -4,11 +4,10 @@ mod test {
     use pretty_assertions::assert_eq;
     use serde_json::Value;
 
-    fn split(content: &str) -> (String, String) {
+    fn split(content: &str) -> (Value, Value) {
         let parsed = Workflow::parse(content).unwrap();
-        let actual = parsed.to_string().unwrap();
-        let expected =
-            serde_yaml::to_string(&serde_yaml::from_str::<Value>(content).unwrap()).unwrap();
+        let actual = serde_yaml::from_str::<Value>(&parsed.to_string().unwrap()).unwrap();
+        let expected = serde_yaml::from_str::<Value>(content).unwrap();
 
         (actual, expected)
     }

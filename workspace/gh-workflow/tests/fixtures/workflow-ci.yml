@@ -1,3 +1,4 @@
+$schema: https://json.schemastore.org/github-workflow
 name: Build
 
 on:
@@ -20,7 +21,7 @@ concurrency:
 jobs:
   setup_build_matrix:
     name: Outputs matrix used for cross compilation
-    uses: ./.github/workflows/build_matrix.yml
+    uses:
 
   check_if_build:
     name: Check if Build
