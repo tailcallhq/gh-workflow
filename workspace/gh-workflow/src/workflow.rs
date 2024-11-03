@@ -424,14 +424,6 @@ pub struct Expression(String);
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option)]
-pub struct ParsedExpression {
-    pub variables: Vec<String>, // Represents variables used within the expression
-    pub functions: Vec<String>, // Represents functions or operators used within the expression
-}
-
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-#[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
 pub struct Secret {
     pub required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
