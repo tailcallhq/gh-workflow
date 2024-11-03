@@ -61,7 +61,8 @@ jobs:
           path: bench*.txt
 
   analyze:
-    needs: build
+    needs:
+      - build
     runs-on: benchmarking-runner
     steps:
       - name: Checkout (GitHub)
