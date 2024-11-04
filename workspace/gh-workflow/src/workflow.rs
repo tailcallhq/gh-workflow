@@ -320,8 +320,9 @@ pub trait Apply<Value> {
 
 impl Apply<Step> for IndexMap<String, Value> {
     fn apply(self, mut step: Step) -> Step {
-        // TODO: extend the existing map instead of replacing it
-        step.with = Some(self);
+        let mut with = step.with.unwrap_or_default();
+        with.extend(self);
+        step.with = Some(with);
         step
     }
 }
