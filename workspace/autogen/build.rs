@@ -10,7 +10,7 @@ fn main() {
     let steps = vec![
         Step::new("Checkout code").uses("actions/checkout@v4".to_string()),
         Step::new("Setup rust").uses("actions-rust-lang/setup-rust-toolchain@v1".to_string()).with(with),
-        Step::new("Run tests").run("cargo test --all-features --workspace".to_string()),
+        Step::new("Run tests").run("RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace".to_string()),
     ];
 
     let job = Job::new("Run tests")
