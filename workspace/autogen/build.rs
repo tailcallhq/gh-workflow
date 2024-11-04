@@ -15,7 +15,7 @@ fn main() {
 
     let job = Job::new("Run tests")
         .runs_on(OneOrManyOrObject::Single("ubuntu-latest".to_string()))
-        .if_condition(Expression::new("github.event_name == 'push'"))
+        // .if_condition(Expression::new("github.event_name == 'push'"))
         .timeout_minutes(10)
         .steps(steps);
 
