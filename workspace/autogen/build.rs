@@ -34,5 +34,5 @@ fn main() {
         .add_job("test", job)
         .unwrap();
 
-    workflow.write(format!("{}/../../.github/workflow/ci.yml",env!("CARGO_MANIFEST_DIR"))).unwrap();
+    workflow.write(format!("{}/../../.github/workflows/ci.yml",env!("CARGO_MANIFEST_DIR"))).unwrap();
 }
