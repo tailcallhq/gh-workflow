@@ -134,7 +134,7 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job<T: AsRef<str>>(mut self, id: T, job: crate::Job) -> Result<Self> {
+    pub fn add_job<T: AsRef<str>>(mut self, id: T, job: Job) -> Result<Self> {
         if self.jobs.contains_key(id.as_ref()) {
             return Err(Error::JobIdAlreadyExists(id.as_ref().to_string()));
         }
@@ -146,8 +146,8 @@ impl Workflow {
     pub fn parse(yml: &str) -> Result<Self> {
         Ok(serde_yaml::from_str(yml)?)
     }
-    pub fn write<T: AsRef<str>>(self, path: T) -> Result<()> {
-        let path = Path::new(path.as_ref());
+    pub fn write<T: AsRef<Path>>(self, path: T) -> Result<()> {
+        let path = path.as_ref();
         path.parent()
             .map_or(Ok(()), |parent| std::fs::create_dir_all(parent))
             .map_err(Error::Io)?;
