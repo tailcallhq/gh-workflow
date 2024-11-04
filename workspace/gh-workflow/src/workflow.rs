@@ -1,10 +1,10 @@
 use std::path::Path;
 use derive_setters::Setters;
 use indexmap::IndexMap;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 use serde_json::Value;
 
-use crate::error::{Error, Result};
+use crate::error::{ Error, Result };
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]
@@ -126,7 +126,10 @@ impl Workflow {
     }
     pub fn write<T: AsRef<str>>(self, path: T) -> Result<()> {
         let path = Path::new(path.as_ref());
-        path.parent().map_or(Ok(()), |parent| std::fs::create_dir_all(parent)).map_err(Error::Io)?;
+        path
+            .parent()
+            .map_or(Ok(()), |parent| std::fs::create_dir_all(parent))
+            .map_err(Error::Io)?;
 
         std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
         Ok(())
@@ -212,6 +215,13 @@ impl Job {
     pub fn new<T: AsRef<str>>(name: T) -> Self {
         Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
+
+    pub fn add_step(mut self, step: Step) -> Self {
+        let mut steps = self.steps.unwrap_or_default();
+        steps.push(step);
+        self.steps = Some(steps);
+        self
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -244,6 +254,7 @@ pub struct Step {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub with: Option<IndexMap<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<String>,
@@ -264,6 +275,31 @@ pub struct Step {
 impl Step {
     pub fn new<T: AsRef<str>>(name: T) -> Self {
         Self { name: Some(name.as_ref().to_string()), ..Default::default() }
+    }
+
+    pub fn with<K: IsWith>(self, item: K) -> Self {
+        item.apply(self)
+    }
+}
+
+pub trait IsWith {
+    fn apply(self, step: Step) -> Step;
+}
+
+impl IsWith for IndexMap<String, Value> {
+    fn apply(self, mut step: Step) -> Step {
+        // TODO: extend the existing map instead of replacing it
+        step.with = Some(self);
+        step
+    }
+}
+
+impl<S: AsRef<str>> IsWith for (S, S) {
+    fn apply(self, mut step: Step) -> Step {
+        let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
+        index_map.insert(self.0.as_ref().to_string(), Value::String(self.1.as_ref().to_string()));
+        step.with = Some(index_map);
+        step
     }
 }
 
