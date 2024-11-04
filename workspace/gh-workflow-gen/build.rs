@@ -1,64 +1,36 @@
 use indexmap::IndexMap;
 use serde_json::Value;
-use gh_workflow::{
-    Expression,
-    Job,
-    OneOrManyOrObject,
-    PermissionLevel,
-    Permissions,
-    Step,
-    WorkflowOn,
-};
+use gh_workflow::{one_or_many_or_kv, workflow_on, Expression, Job, OneOrManyOrObject, PermissionLevel, Permissions, Step, WorkflowOn};
 
 fn main() {
     // TODO: replace `with` with RustToolchain struct.
 
     let job = Job::new("Run tests")
-        .runs_on(OneOrManyOrObject::Single("ubuntu-latest".to_string()))
+        .runs_on(one_or_many_or_kv!("ubuntu-latest"))
         .timeout_minutes(10)
-        .add_step(Step::new("Checkout code").uses("actions/checkout@v4".to_string()))
+        .add_step(Step::new("Checkout code").uses("actions/checkout@v4"))
         .add_step(
             Step::new("Setup rust")
-                .uses("actions-rust-lang/setup-rust-toolchain@v1".to_string())
+                .uses("actions-rust-lang/setup-rust-toolchain@v1")
                 .with(("toolchain", "stable"))
         )
         .add_step(
             Step::new("Run tests").run(
-                "RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace".to_string()
+                "RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace"
             )
         );
 
-    let mut on = IndexMap::new();
-    let mut branches = IndexMap::new();
-    branches.insert("branches".to_string(), WorkflowOn::Multiple(vec!["main".to_string()]));
-
-    let mut on_pr = IndexMap::new();
-    on_pr.insert(
-        "types".to_string(),
-        WorkflowOn::Multiple(
-            vec!["opened", "synchronize", "reopened"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect()
-        )
-    );
-    on_pr.insert(
-        "branches".to_string(),
-        WorkflowOn::Multiple(
-            vec!["main"]
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect()
-        )
-    );
-
-    on.insert("push".to_string(), WorkflowOn::Map(branches));
-    on.insert("pull_request".to_string(), WorkflowOn::Map(on_pr));
-
     let workflow = gh_workflow::Workflow
-        ::new("CI")
+    ::new("CI")
         .permissions(Permissions::default().contents(PermissionLevel::Read))
-        .on(WorkflowOn::Map(on))
+        .on(workflow_on!([
+            ("push", workflow_on!([
+                ("branches", workflow_on!([
+                    "main"
+                ]))
+            ])),
+            ("pull_request", workflow_on!([("types", workflow_on!(["opened", "synchronize", "reopened"])), ("branches", workflow_on!(["main"]))]))
+        ]))
         .add_job("test", job)
         .unwrap();
 

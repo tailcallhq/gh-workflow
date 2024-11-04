@@ -1,10 +1,10 @@
 use std::path::Path;
 use derive_setters::Setters;
 use indexmap::IndexMap;
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::error::{ Error, Result };
+use crate::error::{Error, Result};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]
@@ -81,6 +81,27 @@ pub enum WorkflowOn {
     Multiple(Vec<String>),
     // TODO: use type-safe enum instead of string
     Map(IndexMap<String, WorkflowOn>),
+}
+
+#[macro_export]
+macro_rules! workflow_on {
+    ([$(($key:expr, $value:expr)),+ $(,)?]) => {
+        {
+            let mut map = IndexMap::new();
+            $(
+                map.insert($key.to_string(), $value);
+            )+
+            WorkflowOn::Map(map)
+        }
+    };
+
+    ([$($value:expr),+ $(,)?]) => {
+        WorkflowOn::Multiple(vec![$($value.to_string()),+])
+    };
+    ($single:expr) => {
+        WorkflowOn::Single($single.to_string())
+    };
+
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -233,6 +254,27 @@ pub enum OneOrManyOrObject<T> {
     KeyValue(IndexMap<String, OneOrManyOrObject<T>>),
 }
 
+#[macro_export]
+macro_rules! one_or_many_or_kv {
+    ([$(($key:expr, $value:expr)),+ $(,)?]) => {
+        {
+            let mut map = IndexMap::new();
+            $(
+                map.insert($key.to_string(), OneOrManyOrObject::Single($value.to_string()));
+            )+
+            OneOrManyOrObject::KeyValue(map)
+        }
+    };
+
+    ([$($multiple:expr),+ $(,)?]) => {
+        OneOrManyOrObject::Multiple(vec![$($multiple.to_string()),+])
+    };
+    ($single:expr) => {
+        OneOrManyOrObject::Single($single.to_string())
+    };
+
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
@@ -241,9 +283,8 @@ pub enum OneOrMany<T> {
     Multiple(Vec<T>),
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
 pub struct Step {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -254,7 +295,6 @@ pub struct Step {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub with: Option<IndexMap<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<String>,
@@ -279,6 +319,12 @@ impl Step {
 
     pub fn with<K: IsWith>(self, item: K) -> Self {
         item.apply(self)
+    }
+    pub fn uses<T: AsRef<str>>(self, uses: T) -> Self {
+        Step { uses: Some(uses.as_ref().to_string()), ..self }
+    }
+    pub fn run<T: AsRef<str>>(self, run: T) -> Self {
+        Step { run: Some(run.as_ref().to_string()), ..self }
     }
 }
 
