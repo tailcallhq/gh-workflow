@@ -1,22 +1,26 @@
 name: CI
 on:
   push:
-    branches: main
+    branches:
+    - main
   pull_request:
     types:
     - opened
     - synchronize
     - reopened
+    branches:
+    - main
+permissions:
+  contents: read
 jobs:
   test:
-    if: github.event_name == 'push'
     name: Run tests
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Setup rust
-      uses: actions-rs/toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable
     - name: Run tests
