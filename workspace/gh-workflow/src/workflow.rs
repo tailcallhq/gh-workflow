@@ -1,4 +1,5 @@
 use std::path::Path;
+
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -147,8 +148,7 @@ impl Workflow {
     }
     pub fn write<T: AsRef<str>>(self, path: T) -> Result<()> {
         let path = Path::new(path.as_ref());
-        path
-            .parent()
+        path.parent()
             .map_or(Ok(()), |parent| std::fs::create_dir_all(parent))
             .map_err(Error::Io)?;
 
@@ -343,7 +343,10 @@ impl IsWith for IndexMap<String, Value> {
 impl<S: AsRef<str>> IsWith for (S, S) {
     fn apply(self, mut step: Step) -> Step {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
-        index_map.insert(self.0.as_ref().to_string(), Value::String(self.1.as_ref().to_string()));
+        index_map.insert(
+            self.0.as_ref().to_string(),
+            Value::String(self.1.as_ref().to_string()),
+        );
         step.with = Some(index_map);
         step
     }
