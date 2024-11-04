@@ -1,3 +1,4 @@
+use std::path::Path;
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -79,7 +80,7 @@ pub enum WorkflowOn {
     // TODO: use type-safe enum instead of string
     Multiple(Vec<String>),
     // TODO: use type-safe enum instead of string
-    Map(IndexMap<String, IndexMap<String, Vec<String>>>),
+    Map(IndexMap<String, WorkflowOn>),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -93,9 +94,9 @@ pub struct EventAction {
 }
 
 impl Workflow {
-    pub fn new(name: String) -> Self {
+    pub fn new<T: AsRef<str>>(name: T) -> Self {
         Self {
-            name: Some(name),
+            name: Some(name.as_ref().to_string()),
             permissions: Default::default(),
             on: Default::default(),
             run_name: Default::default(),
@@ -111,17 +112,24 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job(mut self, id: String, job: crate::Job) -> Result<Self> {
-        if self.jobs.contains_key(&id) {
-            return Err(Error::JobIdAlreadyExists(id));
+    pub fn add_job<T: AsRef<str>>(mut self, id: T, job: crate::Job) -> Result<Self> {
+        if self.jobs.contains_key(id.as_ref()) {
+            return Err(Error::JobIdAlreadyExists(id.as_ref().to_string()));
         }
 
-        self.jobs.insert(id, job);
+        self.jobs.insert(id.as_ref().to_string(), job);
         Ok(self)
     }
 
     pub fn parse(yml: &str) -> Result<Self> {
         Ok(serde_yaml::from_str(yml)?)
+    }
+    pub fn write<T: AsRef<str>>(self, path: T) -> Result<()> {
+        let path = Path::new(path.as_ref());
+        path.parent().map_or(Ok(()), |parent| std::fs::create_dir_all(parent)).map_err(Error::Io)?;
+
+        std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
+        Ok(())
     }
 }
 
@@ -200,6 +208,12 @@ pub struct Job {
     pub artifacts: Option<Artifacts>,
 }
 
+impl Job {
+    pub fn new<T: AsRef<str>>(name: T) -> Self {
+        Self { name: Some(name.as_ref().to_string()), ..Default::default() }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
@@ -248,8 +262,8 @@ pub struct Step {
 }
 
 impl Step {
-    pub fn new(step: String) -> Self {
-        Self { run: Some(step), name: None, ..Default::default() }
+    pub fn new<T: AsRef<str>>(name: T) -> Self {
+        Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
 }
 
@@ -420,6 +434,12 @@ pub struct RetryDefaults {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub struct Expression(String);
+
+impl Expression {
+    pub fn new<T: AsRef<str>>(expr: T) -> Self {
+        Self(expr.as_ref().to_string())
+    }
+}
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
