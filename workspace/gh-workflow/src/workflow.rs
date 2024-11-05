@@ -226,7 +226,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<Step>>,
+    pub steps: Option<Vec<Step<StepTy>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -260,9 +260,9 @@ impl Job {
         Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
 
-    pub fn add_step(mut self, step: Step) -> Self {
+    pub fn add_step<IntoStep: Into<Step<StepTy>>>(mut self, step: IntoStep) -> Self {
         let mut steps = self.steps.unwrap_or_default();
-        steps.push(step);
+        steps.push(step.into());
         self.steps = Some(steps);
         self
     }
@@ -302,8 +302,32 @@ pub enum OneOrMany<T> {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+pub struct Run(String);
+
+impl Run {
+    pub fn new<T: AsRef<str>>(run: T) -> Self {
+        Self(run.as_ref().to_string())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+pub struct Uses(String);
+
+impl Uses {
+    pub fn new<T: AsRef<str>>(uses: T) -> Self {
+        Self(uses.as_ref().to_string())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum StepTy {
+    Run,
+    Uses,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-pub struct Step {
+pub struct Step<Ty> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -311,11 +335,11 @@ pub struct Step {
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
     pub if_condition: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uses: Option<String>,
+    pub uses: Option<Uses>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub with: Option<IndexMap<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub run: Option<String>,
+    pub run: Option<Run>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -328,9 +352,93 @@ pub struct Step {
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Artifacts>,
+
+    #[serde(skip)]
+    marker: std::marker::PhantomData<Ty>,
 }
 
-impl Step {
+impl Step<Run> {
+    pub fn run<T: AsRef<str>>(self, run: T) -> Step<Run> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: self.uses,
+            with: self.with,
+            run: Some(Run::new(run)),
+
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Step<Uses> {
+    pub fn uses<T: AsRef<str>>(self, uses: T) -> Step<Uses> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: Some(Uses::new(uses)),
+            with: self.with,
+            run: self.run,
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Into<Step<StepTy>> for Step<Uses> {
+    fn into(self) -> Step<StepTy> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: self.uses,
+            with: self.with,
+            run: self.run,
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Into<Step<StepTy>> for Step<Run> {
+    fn into(self) -> Step<StepTy> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: self.uses,
+            with: self.with,
+            run: self.run,
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<Ty: Default> Step<Ty> {
     pub fn new<T: AsRef<str>>(name: T) -> Self {
         Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
@@ -338,20 +446,14 @@ impl Step {
     pub fn with<K: Apply<Self>>(self, item: K) -> Self {
         item.apply(self)
     }
-    pub fn uses<T: AsRef<str>>(self, uses: T) -> Self {
-        Step { uses: Some(uses.as_ref().to_string()), ..self }
-    }
-    pub fn run<T: AsRef<str>>(self, run: T) -> Self {
-        Step { run: Some(run.as_ref().to_string()), ..self }
-    }
 }
 
 pub trait Apply<Value> {
     fn apply(self, value: Value) -> Value;
 }
 
-impl Apply<Step> for IndexMap<String, Value> {
-    fn apply(self, mut step: Step) -> Step {
+impl<Ty> Apply<Step<Ty>> for IndexMap<String, Value> {
+    fn apply(self, mut step: Step<Ty>) -> Step<Ty> {
         let mut with = step.with.unwrap_or_default();
         with.extend(self);
         step.with = Some(with);
@@ -359,8 +461,8 @@ impl Apply<Step> for IndexMap<String, Value> {
     }
 }
 
-impl<S: AsRef<str>> Apply<Step> for (S, S) {
-    fn apply(self, mut step: Step) -> Step {
+impl<Ty, S: AsRef<str>> Apply<Step<Ty>> for (S, S) {
+    fn apply(self, mut step: Step<Ty>) -> Step<Ty> {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
         index_map.insert(
             self.0.as_ref().to_string(),
