@@ -1,15 +1,13 @@
-use gh_workflow::{
-    one_or_many_or_kv, workflow_on, Job, OneOrManyOrObject, PermissionLevel, Permissions, Step,
-    WorkflowOn,
-};
-use indexmap::IndexMap;
+use std::time::Duration;
+
+use gh_workflow::{Job, PermissionLevel, Permissions, Step};
 
 fn main() {
     // TODO: replace `with` with RustToolchain struct.
 
     let job = Job::new("Run tests")
-        .runs_on(one_or_many_or_kv!("ubuntu-latest"))
-        .timeout_minutes(10)
+        .runs_on("ubuntu-latest")
+        .timeout(Duration::from_secs(10 * 60))
         .add_step(Step::new("Checkout code").uses("actions/checkout@v4"))
         .add_step(
             Step::new("Setup rust")
@@ -22,17 +20,17 @@ fn main() {
         );
 
     let workflow = gh_workflow::Workflow::new("CI")
-        .permissions(Permissions::default().contents(PermissionLevel::Read))
-        .on(workflow_on!([
-            ("push", workflow_on!([("branches", workflow_on!(["main"]))])),
+        .permissions(Permissions::read())
+        .on(vec![
+            ("push", vec![("branches", vec!["main"])]),
             (
                 "pull_request",
-                workflow_on!([
-                    ("types", workflow_on!(["opened", "synchronize", "reopened"])),
-                    ("branches", workflow_on!(["main"]))
-                ])
-            )
-        ]))
+                vec![
+                    ("types", vec!["opened", "synchronize", "reopened"]),
+                    ("branches", vec!["main"]),
+                ],
+            ),
+        ])
         .add_job("test", job)
         .unwrap();
 

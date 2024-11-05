@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, time::Duration};
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
@@ -56,7 +56,8 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub on: Option<WorkflowOn>,
+    #[setters(skip)]
+    pub on: Option<OneOrManyOrObject<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
@@ -71,38 +72,6 @@ pub struct Workflow {
     pub env: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case", untagged)]
-pub enum WorkflowOn {
-    // TODO: use type-safe enum instead of string
-    Single(String),
-    // TODO: use type-safe enum instead of string
-    Multiple(Vec<String>),
-    // TODO: use type-safe enum instead of string
-    Map(IndexMap<String, WorkflowOn>),
-}
-
-#[macro_export]
-macro_rules! workflow_on {
-    ([$(($key:expr, $value:expr)),+ $(,)?]) => {
-        {
-            let mut map = IndexMap::new();
-            $(
-                map.insert($key.to_string(), $value);
-            )+
-            WorkflowOn::Map(map)
-        }
-    };
-
-    ([$($value:expr),+ $(,)?]) => {
-        WorkflowOn::Multiple(vec![$($value.to_string()),+])
-    };
-    ($single:expr) => {
-        WorkflowOn::Single($single.to_string())
-    };
-
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -155,6 +124,27 @@ impl Workflow {
         std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
         Ok(())
     }
+
+    pub fn on<T: Apply<Self>>(self, a: T) -> Self {
+        a.apply(self)
+    }
+
+    pub fn timeout(mut self, duration: Duration) -> Self {
+        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
+        self
+    }
+}
+
+impl<S: AsRef<str>, W: Apply<Workflow>> Apply<Workflow> for Vec<(S, W)> {
+    fn apply(self, workflow: Workflow) -> Workflow {
+        todo!()
+    }
+}
+
+impl Apply<Workflow> for Vec<&str> {
+    fn apply(self, workflow: Workflow) -> Workflow {
+        todo!()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -197,6 +187,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub runs_on: Option<OneOrManyOrObject<String>>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "env")]
     pub environment: Option<IndexMap<String, Expression>>,
@@ -243,6 +234,22 @@ impl Job {
         self.steps = Some(steps);
         self
     }
+
+    pub fn runs_on<T: Apply<Self>>(self, a: T) -> Self {
+        a.apply(self)
+    }
+
+    pub fn timeout(mut self, duration: Duration) -> Self {
+        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
+        self
+    }
+}
+
+impl<T: ToString> Apply<Job> for T {
+    fn apply(self, mut job: Job) -> Job {
+        job.runs_on = Some(OneOrManyOrObject::Single(self.to_string()));
+        job
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -252,27 +259,6 @@ pub enum OneOrManyOrObject<T> {
     Single(T),
     Multiple(Vec<T>),
     KeyValue(IndexMap<String, OneOrManyOrObject<T>>),
-}
-
-#[macro_export]
-macro_rules! one_or_many_or_kv {
-    ([$(($key:expr, $value:expr)),+ $(,)?]) => {
-        {
-            let mut map = IndexMap::new();
-            $(
-                map.insert($key.to_string(), OneOrManyOrObject::Single($value.to_string()));
-            )+
-            OneOrManyOrObject::KeyValue(map)
-        }
-    };
-
-    ([$($multiple:expr),+ $(,)?]) => {
-        OneOrManyOrObject::Multiple(vec![$($multiple.to_string()),+])
-    };
-    ($single:expr) => {
-        OneOrManyOrObject::Single($single.to_string())
-    };
-
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -317,7 +303,7 @@ impl Step {
         Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
 
-    pub fn with<K: IsWith>(self, item: K) -> Self {
+    pub fn with<K: Apply<Self>>(self, item: K) -> Self {
         item.apply(self)
     }
     pub fn uses<T: AsRef<str>>(self, uses: T) -> Self {
@@ -328,11 +314,11 @@ impl Step {
     }
 }
 
-pub trait IsWith {
-    fn apply(self, step: Step) -> Step;
+pub trait Apply<Value> {
+    fn apply(self, value: Value) -> Value;
 }
 
-impl IsWith for IndexMap<String, Value> {
+impl Apply<Step> for IndexMap<String, Value> {
     fn apply(self, mut step: Step) -> Step {
         // TODO: extend the existing map instead of replacing it
         step.with = Some(self);
@@ -340,7 +326,7 @@ impl IsWith for IndexMap<String, Value> {
     }
 }
 
-impl<S: AsRef<str>> IsWith for (S, S) {
+impl<S: AsRef<str>> Apply<Step> for (S, S) {
     fn apply(self, mut step: Step) -> Step {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
         index_map.insert(
@@ -455,6 +441,16 @@ pub struct Permissions {
     pub id_token: Option<PermissionLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_specific: Option<IndexMap<Event, PermissionLevel>>,
+}
+
+impl Permissions {
+    pub fn read() -> Self {
+        Self { contents: Some(PermissionLevel::Read), ..Default::default() }
+    }
+    
+    pub fn write() -> Self {
+        Self { contents: Some(PermissionLevel::Write), ..Default::default() }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
