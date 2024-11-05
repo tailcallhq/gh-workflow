@@ -360,20 +360,8 @@ pub struct Step<Ty> {
 impl Step<Run> {
     pub fn run<T: AsRef<str>>(self, run: T) -> Step<Run> {
         Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
-            uses: self.uses,
-            with: self.with,
             run: Some(Run::new(run)),
-
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
-            marker: Default::default(),
+            ..self
         }
     }
 }
@@ -381,19 +369,8 @@ impl Step<Run> {
 impl Step<Uses> {
     pub fn uses<T: AsRef<str>>(self, uses: T) -> Step<Uses> {
         Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
             uses: Some(Uses::new(uses)),
-            with: self.with,
-            run: self.run,
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
-            marker: Default::default(),
+            ..self
         }
     }
 }
