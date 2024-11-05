@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use gh_workflow::{Job, PermissionLevel, Permissions, Step};
+use gh_workflow::{Job, Permissions, Step};
 
 fn main() {
     // TODO: replace `with` with RustToolchain struct.

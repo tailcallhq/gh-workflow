@@ -135,15 +135,47 @@ impl Workflow {
     }
 }
 
-impl<S: AsRef<str>, W: Apply<Workflow>> Apply<Workflow> for Vec<(S, W)> {
-    fn apply(self, workflow: Workflow) -> Workflow {
-        todo!()
+impl Into<OneOrManyOrObject<String>> for &str {
+    fn into(self) -> OneOrManyOrObject<String> {
+        OneOrManyOrObject::Single(self.to_string())
+    }
+}
+
+impl Into<OneOrManyOrObject<String>> for Vec<&str> {
+    fn into(self) -> OneOrManyOrObject<String> {
+        OneOrManyOrObject::Multiple(self.into_iter().map(|s| s.to_string()).collect())
+    }
+}
+
+impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec<(&str, V)> {
+    fn into(self) -> OneOrManyOrObject<String> {
+        let mut map = IndexMap::new();
+        for (key, value) in self {
+            map.insert(key.to_string(), value.into());
+        }
+        OneOrManyOrObject::KeyValue(map)
+    }
+}
+
+impl<S: AsRef<str>, W: Into<OneOrManyOrObject<String>>> Apply<Workflow> for Vec<(S, W)> {
+    fn apply(self, mut workflow: Workflow) -> Workflow {
+        let val = self.into_iter().map(|(s, w)| (s.as_ref().to_string(), w.into())).collect();
+        workflow.on = Some(OneOrManyOrObject::KeyValue(val));
+        workflow
     }
 }
 
 impl Apply<Workflow> for Vec<&str> {
     fn apply(self, workflow: Workflow) -> Workflow {
-        todo!()
+        let on = self.into_iter().map(|s| s.to_string()).collect();
+        Workflow { on: Some(OneOrManyOrObject::Multiple(on)), ..workflow }
+    }
+}
+
+impl Apply<Workflow> for &str {
+    fn apply(self, workflow: Workflow) -> Workflow {
+        let on = self.to_string();
+        Workflow { on: Some(OneOrManyOrObject::Single(on)), ..workflow }
     }
 }
 
@@ -448,7 +480,7 @@ impl Permissions {
     pub fn read() -> Self {
         Self { contents: Some(PermissionLevel::Read), ..Default::default() }
     }
-    
+
     pub fn write() -> Self {
         Self { contents: Some(PermissionLevel::Write), ..Default::default() }
     }
