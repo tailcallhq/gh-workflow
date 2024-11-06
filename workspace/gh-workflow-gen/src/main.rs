@@ -1,5 +1,4 @@
-use gh_workflow::toolchain::{RustFlag, Version};
-use gh_workflow::{Job, Permissions, Step, Workflow};
+use gh_workflow::{Job, Permissions, RustFlag, Step, Version, Workflow};
 
 fn main() {
     let rust_flags = RustFlag::allow("Warnings");
