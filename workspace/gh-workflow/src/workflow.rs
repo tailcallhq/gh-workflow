@@ -88,15 +88,7 @@ impl Workflow {
     pub fn new<T: ToString>(name: T) -> Self {
         Self {
             name: Some(name.to_string()),
-            permissions: Default::default(),
-            on: Default::default(),
-            run_name: Default::default(),
-            jobs: Default::default(),
-            concurrency: Default::default(),
-            defaults: Default::default(),
-            secrets: Default::default(),
-            env: Default::default(),
-            timeout_minutes: Default::default(),
+            ..Default::default()
         }
     }
     pub fn to_string(&self) -> Result<String> {
