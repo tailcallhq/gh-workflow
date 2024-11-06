@@ -18,7 +18,7 @@ fn main() {
         );
 
     let nightly = Job::new("Nightly")
-        .add_step(Step::uses("actions", "checkout", 4).name("Checkout Code"))
+        .add_step(Step::checkout())
         .add_step(
             // TODO: Rust Tool Chain can be a separate struct
             Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
@@ -27,8 +27,7 @@ fn main() {
         )
         .add_step(
             // TODO: Cargo fmt command should be more type-safe
-            Step::run("cargo +nightly fmt --all-features --workspace -- check")
-                .name("Run Fmt"),
+            Step::run("cargo +nightly fmt --all-features --workspace -- check").name("Run Fmt"),
         )
         .add_step(
             // TODO: Cargo clippy command should be more type-safe
