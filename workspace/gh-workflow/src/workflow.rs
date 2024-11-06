@@ -119,13 +119,14 @@ impl Workflow {
     pub fn parse(yml: &str) -> Result<Self> {
         Ok(serde_yaml::from_str(yml)?)
     }
-    pub fn write<T: AsRef<Path>>(self, path: T) -> Result<()> {
+    pub fn generate<T: AsRef<Path>>(self, path: T) -> Result<()> {
         let path = path.as_ref();
         path.parent()
             .map_or(Ok(()), |parent| std::fs::create_dir_all(parent))
             .map_err(Error::Io)?;
 
         std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
+        println!("Generated workflow file: {}", path.canonicalize()?.display());
         Ok(())
     }
 
@@ -307,24 +308,6 @@ pub enum OneOrMany<T> {
     Single(T),
     Multiple(Vec<T>),
 }
-
-// #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-// pub struct Run(String);
-
-// impl Run {
-//     pub fn new<T: ToString>(run: T) -> Self {
-//         Self(run.to_string())
-//     }
-// }
-
-// #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-// pub struct Use(String);
-
-// impl Use {
-//     pub fn new<T: ToString>(uses: T) -> Self {
-//         Self(uses.to_string())
-//     }
-// }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum AnyStep {
