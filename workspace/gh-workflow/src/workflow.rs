@@ -113,7 +113,7 @@ impl Workflow {
     pub fn generate<T: AsRef<Path>>(self, path: T) -> Result<()> {
         let path = path.as_ref();
         path.parent()
-            .map_or(Ok(()), |parent| std::fs::create_dir_all(parent))
+            .map_or(Ok(()), std::fs::create_dir_all)
             .map_err(Error::Io)?;
 
         std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
@@ -427,7 +427,7 @@ impl Step<Use> {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
     }
 
-    pub fn rust_toolchain() -> RustToolchainStep {
+    pub fn setup_rust() -> RustToolchainStep {
         RustToolchainStep::default()
     }
 }

@@ -1,4 +1,4 @@
-use gh_workflow::{Job, Permissions, RustFlags, Step, Version, Workflow};
+use gh_workflow::{Job, Permissions, RustFlags, Step, Toolchain, Workflow};
 
 fn main() {
     let rust_flags = RustFlags::allow("Warnings");
@@ -6,9 +6,9 @@ fn main() {
     let build = Job::new("build")
         .add_step(Step::checkout())
         .add_step(
-            Step::rust_toolchain()
-                .add_version(Version::Stable)
-                .add_version(Version::Nightly),
+            Step::setup_rust()
+                .add_toolchain(Toolchain::Stable)
+                .add_toolchain(Toolchain::Nightly),
         )
         .add_step(
             // TODO: Cargo commands should be more type-safe
