@@ -47,20 +47,6 @@ pub enum Event {
     RepositoryDispatch,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
-#[serde(transparent)]
-pub struct JobKey(String);
-
-impl JobKey {
-    fn new<T: ToString>(key: T) -> Self {
-        Self(key.to_string().to_case(Case::Kebab))
-    }
-
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option)]
@@ -78,13 +64,13 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub jobs: IndexMap<JobKey, Job>,
+    pub jobs: IndexMap<String, Job>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<IndexMap<String, Secret>>,    
+    pub secrets: Option<IndexMap<String, Secret>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
 }
@@ -108,7 +94,7 @@ impl Workflow {
     }
 
     pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Result<Self> {
-        let key = JobKey::new(id);
+        let key = id.to_string();
         if self.jobs.contains_key(&key) {
             return Err(Error::JobIdAlreadyExists(key.as_str().to_string()));
         }
