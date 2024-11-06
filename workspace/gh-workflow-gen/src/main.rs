@@ -14,7 +14,7 @@ fn main() {
         )
         .add_step(
             // TODO: Cargo commands should be more type-safe
-            Step::run("cargo test --all-features --workspace").name("Run Cargo Test"),
+            Step::run("cargo test --all-features --workspace").name("Run Test"),
         );
 
     let nightly = Job::new("Nightly")
@@ -27,13 +27,13 @@ fn main() {
         )
         .add_step(
             // TODO: Cargo fmt command should be more type-safe
-            Step::run("cargo nightly fmt --all-features --workspace -- check")
-                .name("Run Cargo Test"),
+            Step::run("cargo +nightly fmt --all-features --workspace -- check")
+                .name("Run Fmt"),
         )
         .add_step(
             // TODO: Cargo clippy command should be more type-safe
-            Step::run("cargo nightly clippy --all-features --workspace -- -D warnings ")
-                .name("Run Cargo Test"),
+            Step::run("cargo +nightly clippy --all-features --workspace -- -D warnings ")
+                .name("Run Clippy"),
         );
 
     Workflow::new("CI")
