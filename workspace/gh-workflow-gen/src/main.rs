@@ -20,6 +20,7 @@ fn main() {
     let nightly = Job::new("Nightly")
         .add_step(Step::uses("actions", "checkout", 4).name("Checkout Code"))
         .add_step(
+            // TODO: Rust Tool Chain can be a separate struct
             Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
                 .name("Setup Rust Toolchain")
                 .with(("toolchain", Version::Nightly)),

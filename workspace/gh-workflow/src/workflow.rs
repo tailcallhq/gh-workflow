@@ -342,7 +342,7 @@ pub struct Step<T> {
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
-    pub with: Option<IndexMap<String, Value>>,
+    with: Option<IndexMap<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub run: Option<String>,
@@ -394,7 +394,7 @@ impl Step<Use> {
         }
     }
 
-    pub fn with<K: SetEnv<Self>>(self, item: K) -> Self {
+    pub fn with<K: SetInput>(self, item: K) -> Self {
         item.apply(self)
     }
 
@@ -403,10 +403,19 @@ impl Step<Use> {
     }
 }
 
-impl SetEnv<Step<Use>> for IndexMap<String, Value> {
+impl SetInput for IndexMap<String, Value> {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut with = step.with.unwrap_or_default();
         with.extend(self);
+        step.with = Some(with);
+        step
+    }
+}
+
+impl<S1: Display, S2: Display> SetInput for (S1, S2) {
+    fn apply(self, mut step: Step<Use>) -> Step<Use> {
+        let mut with = step.with.unwrap_or_default();
+        with.insert(self.0.to_string(), Value::String(self.1.to_string()));
         step.with = Some(with);
         step
     }
@@ -474,6 +483,11 @@ pub trait SetRunner {
 /// Sets the event for a Workflow
 pub trait SetEvent {
     fn apply(self, workflow: Workflow) -> Workflow;
+}
+
+/// Sets the input for a Step that uses another action
+pub trait SetInput {
+    fn apply(self, step: Step<Use>) -> Step<Use>;
 }
 
 impl<S1: Display, S2: Display> SetEnv<Step<Use>> for (S1, S2) {
