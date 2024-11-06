@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{fmt::Display, path::Path, time::Duration};
 
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    RustToolchainStep,
+};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]
@@ -230,7 +233,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<Step<AnyStep>>>,
+    pub steps: Option<Vec<AnyStep>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -269,11 +272,8 @@ impl Job {
         }
     }
 
-    pub fn add_step<S: Into<Step<AnyStep>>>(mut self, step: S) -> Self {
-        let mut steps = self.steps.unwrap_or_default();
-        steps.push(step.into());
-        self.steps = Some(steps);
-        self
+    pub fn add_step<S: AddStep>(self, step: S) -> Self {
+        step.apply(self)
     }
 
     pub fn runs_on<T: SetEnv<Self>>(self, a: T) -> Self {
@@ -316,8 +316,20 @@ pub enum OneOrMany<T> {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum AnyStep {
-    Run,
-    Use,
+    Run(Step<Run>),
+    Use(Step<Use>),
+}
+
+impl From<Step<Run>> for AnyStep {
+    fn from(step: Step<Run>) -> Self {
+        AnyStep::Run(step)
+    }
+}
+
+impl From<Step<Use>> for AnyStep {
+    fn from(step: Step<Use>) -> Self {
+        AnyStep::Use(step)
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -375,6 +387,19 @@ impl<T> Step<T> {
     }
 }
 
+impl<T> AddStep for Step<T>
+where
+    Step<T>: Into<AnyStep>,
+{
+    fn apply(self, mut job: Job) -> Job {
+        let mut steps = job.steps.unwrap_or_default();
+        steps.push(self.into());
+        job.steps = Some(steps);
+
+        job
+    }
+}
+
 impl Step<Run> {
     pub fn run<T: ToString>(cmd: T) -> Self {
         Step { run: Some(cmd.to_string()), ..Default::default() }
@@ -400,6 +425,10 @@ impl Step<Use> {
 
     pub fn checkout() -> Self {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
+    }
+
+    pub fn rust_toolchain() -> RustToolchainStep {
+        RustToolchainStep::default()
     }
 }
 
@@ -488,6 +517,11 @@ pub trait SetEvent {
 /// Sets the input for a Step that uses another action
 pub trait SetInput {
     fn apply(self, step: Step<Use>) -> Step<Use>;
+}
+
+/// Inserts a step into a job
+pub trait AddStep {
+    fn apply(self, job: Job) -> Job;
 }
 
 impl<S1: Display, S2: Display> SetEnv<Step<Use>> for (S1, S2) {

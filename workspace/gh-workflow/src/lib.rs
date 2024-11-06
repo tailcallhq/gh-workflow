@@ -1,7 +1,7 @@
 pub mod error;
 mod rust_flag;
-mod version;
+mod toolchain;
 pub(crate) mod workflow;
 pub use rust_flag::*;
-pub use version::*;
+pub use toolchain::*;
 pub use workflow::*;

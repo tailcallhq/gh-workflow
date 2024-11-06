@@ -1,36 +1,26 @@
-use gh_workflow::{Job, Permissions, RustFlag, Step, Version, Workflow};
+use gh_workflow::{Job, Permissions, RustFlags, Step, Version, Workflow};
 
 fn main() {
-    let rust_flags = RustFlag::allow("Warnings");
+    let rust_flags = RustFlags::allow("Warnings");
 
-    let stable = Job::new("build")
+    let build = Job::new("build")
         .add_step(Step::checkout())
         .add_step(
-            // TODO: Rust Tool Chain can be a separate struct
-            Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
-                .name("Setup Rust Toolchain")
-                .with(("toolchain", Version::Stable)),
+            Step::rust_toolchain()
+                .add_version(Version::Stable)
+                .add_version(Version::Nightly),
         )
         .add_step(
             // TODO: Cargo commands should be more type-safe
             Step::run("cargo test --all-features --workspace").name("Run Test"),
-        );
-
-    let nightly = Job::new("Nightly")
-        .add_step(Step::checkout())
-        .add_step(
-            // TODO: Rust Tool Chain can be a separate struct
-            Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
-                .name("Setup Rust Toolchain")
-                .with(("toolchain", Version::Nightly)),
         )
         .add_step(
             // TODO: Cargo fmt command should be more type-safe
-            Step::run("cargo +nightly fmt --all-features --workspace -- check").name("Run Fmt"),
+            Step::run("cargo +nightly fmt --check").name("Run Fmt"),
         )
         .add_step(
             // TODO: Cargo clippy command should be more type-safe
-            Step::run("cargo +nightly clippy --all-features --workspace -- -D warnings ")
+            Step::run("cargo +nightly clippy --all-features --workspace -- -D warnings")
                 .name("Run Clippy"),
         );
 
@@ -48,9 +38,7 @@ fn main() {
                 ],
             ),
         ])
-        .add_job("stable", stable)
-        .unwrap()
-        .add_job("nightly", nightly)
+        .add_job("build", build)
         .unwrap()
         .generate(format!(
             "{}/../../.github/workflows/ci.yml",
