@@ -121,7 +121,7 @@ impl Workflow {
         Ok(())
     }
 
-    pub fn on<T: AsEvent<Self>>(self, a: T) -> Self {
+    pub fn on<T: SetEvent>(self, a: T) -> Self {
         a.apply(self)
     }
 
@@ -130,13 +130,9 @@ impl Workflow {
         self
     }
 
-    pub fn env<T: AsEnv<Self>>(self, env: T) -> Self {
+    pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
         env.apply(self)
     }
-}
-
-pub trait AsEvent<Value> {
-    fn apply(self, value: Value) -> Value;
 }
 
 // TODO: inline this conversion in actual usage
@@ -164,7 +160,7 @@ impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec
     }
 }
 
-impl<S: Display, W: Into<OneOrManyOrObject<String>>> AsEvent<Workflow> for Vec<(S, W)> {
+impl<S: Display, W: Into<OneOrManyOrObject<String>>> SetEvent for Vec<(S, W)> {
     fn apply(self, mut workflow: Workflow) -> Workflow {
         let val = self
             .into_iter()
@@ -175,14 +171,14 @@ impl<S: Display, W: Into<OneOrManyOrObject<String>>> AsEvent<Workflow> for Vec<(
     }
 }
 
-impl AsEvent<Workflow> for Vec<&str> {
+impl SetEvent for Vec<&str> {
     fn apply(self, workflow: Workflow) -> Workflow {
         let on = self.into_iter().map(|s| s.to_string()).collect();
         Workflow { on: Some(OneOrManyOrObject::Multiple(on)), ..workflow }
     }
 }
 
-impl AsEvent<Workflow> for &str {
+impl SetEvent for &str {
     fn apply(self, workflow: Workflow) -> Workflow {
         let on = self.to_string();
         Workflow { on: Some(OneOrManyOrObject::Single(on)), ..workflow }
@@ -280,7 +276,7 @@ impl Job {
         self
     }
 
-    pub fn runs_on<T: AsEnv<Self>>(self, a: T) -> Self {
+    pub fn runs_on<T: SetEnv<Self>>(self, a: T) -> Self {
         a.apply(self)
     }
 
@@ -289,12 +285,12 @@ impl Job {
         self
     }
 
-    pub fn env<T: AsEnv<Self>>(self, env: T) -> Self {
+    pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
         env.apply(self)
     }
 }
 
-impl<T: ToString> AsRunner<Job> for T {
+impl<T: ToString> SetRunner for T {
     fn apply(self, mut job: Job) -> Job {
         job.runs_on = Some(OneOrManyOrObject::Single(self.to_string()));
         job
@@ -374,7 +370,7 @@ impl<T> Step<T> {
         self
     }
 
-    pub fn env<R: AsEnv<Self>>(self, env: R) -> Self {
+    pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
         env.apply(self)
     }
 }
@@ -398,7 +394,7 @@ impl Step<Use> {
         }
     }
 
-    pub fn with<K: AsEnv<Self>>(self, item: K) -> Self {
+    pub fn with<K: SetEnv<Self>>(self, item: K) -> Self {
         item.apply(self)
     }
 
@@ -407,7 +403,7 @@ impl Step<Use> {
     }
 }
 
-impl AsEnv<Step<Use>> for IndexMap<String, Value> {
+impl SetEnv<Step<Use>> for IndexMap<String, Value> {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut with = step.with.unwrap_or_default();
         with.extend(self);
@@ -416,7 +412,7 @@ impl AsEnv<Step<Use>> for IndexMap<String, Value> {
     }
 }
 
-impl<S1: Display, S2: Display> AsEnv<Job> for (S1, S2) {
+impl<S1: Display, S2: Display> SetEnv<Job> for (S1, S2) {
     fn apply(self, mut value: Job) -> Job {
         let mut index_map: IndexMap<String, String> = value.env.unwrap_or_default();
         index_map.insert(self.0.to_string(), self.1.to_string());
@@ -465,15 +461,22 @@ impl Into<Step<AnyStep>> for Step<Run> {
     }
 }
 
-pub trait AsEnv<Value> {
+/// Set the `env` for Step, Job or Workflows
+pub trait SetEnv<Value> {
     fn apply(self, value: Value) -> Value;
 }
 
-pub trait AsRunner<Value> {
-    fn apply(self, value: Value) -> Value;
+/// Set the `run` for a Job
+pub trait SetRunner {
+    fn apply(self, job: Job) -> Job;
 }
 
-impl<S1: Display, S2: Display> AsEnv<Step<Use>> for (S1, S2) {
+/// Sets the event for a Workflow
+pub trait SetEvent {
+    fn apply(self, workflow: Workflow) -> Workflow;
+}
+
+impl<S1: Display, S2: Display> SetEnv<Step<Use>> for (S1, S2) {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
         index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));

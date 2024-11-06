@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{AsEnv, Job, Step, Workflow};
+use crate::{SetEnv, Job, Step, Workflow};
 
 pub enum Version {
     Stable,
@@ -32,7 +32,7 @@ pub enum RustFlag {
     Combine(Box<RustFlag>, Box<RustFlag>),
 }
 
-impl AsEnv<Job> for RustFlag {
+impl SetEnv<Job> for RustFlag {
     fn apply(self, mut value: Job) -> Job {
         let mut env = value.env.unwrap_or_default();
         env.insert("RUSTFLAGS".to_string(), self.to_string());
@@ -41,7 +41,7 @@ impl AsEnv<Job> for RustFlag {
     }
 }
 
-impl AsEnv<Workflow> for RustFlag {
+impl SetEnv<Workflow> for RustFlag {
     fn apply(self, mut value: Workflow) -> Workflow {
         let mut env = value.env.unwrap_or_default();
         env.insert("RUSTFLAGS".to_string(), self.to_string());
@@ -50,7 +50,7 @@ impl AsEnv<Workflow> for RustFlag {
     }
 }
 
-impl<T> AsEnv<Step<T>> for RustFlag {
+impl<T> SetEnv<Step<T>> for RustFlag {
     fn apply(self, mut value: Step<T>) -> Step<T> {
         let mut env = value.env.unwrap_or_default();
         env.insert("RUSTFLAGS".to_string(), self.to_string());
