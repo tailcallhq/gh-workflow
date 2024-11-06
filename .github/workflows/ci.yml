@@ -13,16 +13,19 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
-    name: Run tests
+  rust:
+    name: Rust Job
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v4
-    - name: Setup rust
+    - name: Setup Rust Toolchain
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable
-    - name: Run tests
+    - name: Run Cargo Test
       run: RUSTFLAGS="-Awarnings" cargo test --all-features --workspace
-    timeout-minutes: 10
+    - name: Check Formatting
+      run: cargo fmt -- --check
+    - name: Run Clippy
+      run: cargo clippy -- -D warnings

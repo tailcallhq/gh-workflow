@@ -1,5 +1,6 @@
 use std::{path::Path, time::Duration};
 
+use convert_case::{Case, Casing};
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -86,10 +87,7 @@ pub struct EventAction {
 
 impl Workflow {
     pub fn new<T: ToString>(name: T) -> Self {
-        Self {
-            name: Some(name.to_string()),
-            ..Default::default()
-        }
+        Self { name: Some(name.to_string()), ..Default::default() }
     }
     pub fn to_string(&self) -> Result<String> {
         Ok(serde_yaml::to_string(self)?)
@@ -365,7 +363,7 @@ pub struct Step<T> {
 
 impl<T> Step<T> {
     pub fn name<S: ToString>(mut self, name: S) -> Self {
-        self.name = Some(name.to_string());
+        self.name = Some(name.to_string().to_case(Case::Title));
         self
     }
 }
@@ -447,8 +445,8 @@ pub trait Apply<Value> {
     fn apply(self, value: Value) -> Value;
 }
 
-impl<Ty, S: ToString> Apply<Step<Ty>> for (S, S) {
-    fn apply(self, mut step: Step<Ty>) -> Step<Ty> {
+impl<S1: ToString, S2: ToString> Apply<Step<Use>> for (S1, S2) {
+    fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
         index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));
         step.with = Some(index_map);

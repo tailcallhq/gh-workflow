@@ -1,7 +1,10 @@
 use gh_workflow::toolchain::RustToolchain;
 
 fn main() {
-    let toolchain = RustToolchain::default();
+    let toolchain = RustToolchain::default()
+        .workspace(true)
+        .fmt(true)
+        .clippy(true);
     toolchain
         .to_workflow()
         .unwrap()

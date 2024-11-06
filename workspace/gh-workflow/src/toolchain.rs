@@ -9,7 +9,7 @@ use crate::workflow::*;
 /// A type-safe representation of the Rust toolchain.
 /// Instead of writing the github action for Rust by hand, we can use this
 /// struct to generate the github action.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum Version {
     #[default]
     Stable,
@@ -27,29 +27,52 @@ impl ToString for Version {
     }
 }
 
-#[derive(Setters, Default)]
+#[derive(Setters, Default, Clone)]
+#[setters(strip_option)]
 pub struct RustToolchain {
     version: Version,
     fmt: bool,
     clippy: bool,
-    // TODO: add more rust tool chain components
+    timeout: Option<Duration>,
+    workspace: bool,
 }
 
 impl RustToolchain {
     pub fn to_workflow(&self) -> Result<Workflow> {
-        let job = Job::new("Run tests")
+        let mut job = Job::new("Rust Job")
             .runs_on("ubuntu-latest")
-            .timeout(Duration::from_secs(10 * 60))
-            .add_step(Step::uses("actions", "checkout", 4).name("Checkout code"))
+            .add_step(Step::uses("actions", "checkout", 4).name("Checkout Code"))
             .add_step(
                 Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
-                    .name("Setup rust")
-                    .with(("toolchain", "stable")),
-            )
-            .add_step(
-                Step::run("RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace")
-                    .name("Run tests"),
+                    .name("Setup Rust Toolchain")
+                    .with(("toolchain", self.version.clone())),
             );
+
+        if let Some(timeout) = self.timeout {
+            job = job.timeout(timeout);
+        }
+
+        let mut cargo_test_args = vec!["--all-features"];
+
+        if self.workspace {
+            cargo_test_args.push("--workspace");
+        }
+
+        job = job.add_step(
+            Step::run(format!(
+                "RUSTFLAGS=\"-Awarnings\" cargo test {}",
+                cargo_test_args.join(" ")
+            ))
+            .name("Run Cargo Test"),
+        );
+
+        if self.fmt {
+            job = job.add_step(Step::run("cargo fmt -- --check").name("Check formatting"));
+        }
+
+        if self.clippy {
+            job = job.add_step(Step::run("cargo clippy -- -D warnings").name("Run clippy"));
+        }
 
         Workflow::new("CI")
             .permissions(Permissions::read())
@@ -64,6 +87,6 @@ impl RustToolchain {
                     ],
                 ),
             ])
-            .add_job("test", job)
+            .add_job("rust", job)
     }
 }
