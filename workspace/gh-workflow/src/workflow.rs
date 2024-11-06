@@ -1,10 +1,9 @@
-use std::{path::Path, time::Duration};
-
 use convert_case::{Case, Casing};
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::{path::Path, time::Duration};
 
 use crate::error::{Error, Result};
 
@@ -48,6 +47,20 @@ pub enum Event {
     RepositoryDispatch,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct JobKey(String);
+
+impl JobKey {
+    fn new<T: ToString>(key: T) -> Self {
+        Self(key.to_string().to_case(Case::Kebab))
+    }
+
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option)]
@@ -62,7 +75,7 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub jobs: IndexMap<String, Job>,
+    pub jobs: IndexMap<JobKey, Job>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,12 +106,13 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job<T: ToString>(mut self, id: T, job: Job) -> Result<Self> {
-        if self.jobs.contains_key(id.to_string().as_str()) {
-            return Err(Error::JobIdAlreadyExists(id.to_string()));
+    pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Result<Self> {
+        let key = JobKey::new(id);
+        if self.jobs.contains_key(&key) {
+            return Err(Error::JobIdAlreadyExists(key.as_str().to_string()));
         }
 
-        self.jobs.insert(id.to_string(), job);
+        self.jobs.insert(key, job.into());
         Ok(self)
     }
 

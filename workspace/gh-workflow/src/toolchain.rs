@@ -1,51 +1,76 @@
+//! A type-safe representation of the Rust toolchain.
 use std::time::Duration;
 
 use derive_setters::Setters;
 
-use crate::error::Result;
 use crate::workflow::*;
 
-///
-/// A type-safe representation of the Rust toolchain.
-/// Instead of writing the github action for Rust by hand, we can use this
-/// struct to generate the github action.
-#[derive(Default, Clone)]
-pub enum Version {
-    #[default]
-    Stable,
-    Beta,
-    Nightly,
-}
+pub trait Version: ToString {}
 
-impl ToString for Version {
+#[derive(Default, Clone)]
+pub struct Stable;
+
+impl Version for Stable {}
+impl ToString for Stable {
     fn to_string(&self) -> String {
-        match self {
-            Version::Stable => "stable".to_string(),
-            Version::Beta => "beta".to_string(),
-            Version::Nightly => "nightly".to_string(),
-        }
+        "stable".to_string()
     }
 }
 
-#[derive(Setters, Default, Clone)]
-#[setters(strip_option)]
-pub struct RustToolchain {
+#[derive(Default, Clone)]
+pub struct Nightly;
+
+impl Version for Nightly {}
+impl ToString for Nightly {
+    fn to_string(&self) -> String {
+        "nightly".to_string()
+    }
+}
+
+#[derive(Setters, Clone)]
+pub struct Toolchain<Version> {
     version: Version,
     fmt: bool,
     clippy: bool,
     timeout: Option<Duration>,
     workspace: bool,
+    test: bool,
 }
 
-impl RustToolchain {
-    pub fn to_workflow(&self) -> Result<Workflow> {
+impl<V: Version + Default> Toolchain<V> {
+    pub fn new(version: V) -> Self {
+        Toolchain {
+            version,
+            fmt: false,
+            clippy: false,
+            timeout: None,
+            workspace: false,
+            test: false,
+        }
+    }
+}
+
+impl Toolchain<Stable> {
+    pub fn stable() -> Self {
+        Toolchain::new(Stable)
+    }
+}
+
+impl Toolchain<Nightly> {
+    pub fn nightly() -> Self {
+        Toolchain::new(Nightly)
+    }
+}
+
+impl<V: Version> Into<Job> for Toolchain<V> {
+    fn into(self) -> Job {
         let mut job = Job::new("Rust Job")
             .runs_on("ubuntu-latest")
             .add_step(Step::uses("actions", "checkout", 4).name("Checkout Code"))
             .add_step(
                 Step::uses("actions-rust-lang", "setup-rust-toolchain", 1)
                     .name("Setup Rust Toolchain")
-                    .with(("toolchain", self.version.clone())),
+                    .with(("toolchain", self.version)),
             );
 
         if let Some(timeout) = self.timeout {
@@ -58,13 +83,15 @@ impl RustToolchain {
             cargo_test_args.push("--workspace");
         }
 
-        job = job.add_step(
-            Step::run(format!(
-                "RUSTFLAGS=\"-Awarnings\" cargo test {}",
-                cargo_test_args.join(" ")
-            ))
-            .name("Run Cargo Test"),
-        );
+        if self.test {
+            job = job.add_step(
+                Step::run(format!(
+                    "RUSTFLAGS=\"-Awarnings\" cargo test {}",
+                    cargo_test_args.join(" ")
+                ))
+                .name("Run Cargo Test"),
+            );
+        }
 
         if self.fmt {
             job = job.add_step(Step::run("cargo fmt -- --check").name("Check formatting"));
@@ -74,19 +101,6 @@ impl RustToolchain {
             job = job.add_step(Step::run("cargo clippy -- -D warnings").name("Run clippy"));
         }
 
-        Workflow::new("CI")
-            .permissions(Permissions::read())
-            .on(vec![
-                // TODO: enums
-                ("push", vec![("branches", vec!["main"])]),
-                (
-                    "pull_request",
-                    vec![
-                        ("types", vec!["opened", "synchronize", "reopened"]),
-                        ("branches", vec!["main"]),
-                    ],
-                ),
-            ])
-            .add_job("rust", job)
+        job
     }
 }
