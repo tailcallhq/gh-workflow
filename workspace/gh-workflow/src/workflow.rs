@@ -7,7 +7,7 @@ use std::{fmt::Display, path::Path, time::Duration};
 
 use crate::{
     error::{Error, Result},
-    RustToolchainStep,
+    ToolchainStep,
 };
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
@@ -385,6 +385,11 @@ impl<T> Step<T> {
     pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
         env.apply(self)
     }
+
+    pub fn timeout(mut self, duration: Duration) -> Self {
+        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
+        self
+    }
 }
 
 impl<T> AddStep for Step<T>
@@ -403,6 +408,25 @@ where
 impl Step<Run> {
     pub fn run<T: ToString>(cmd: T) -> Self {
         Step { run: Some(cmd.to_string()), ..Default::default() }
+    }
+
+    pub fn cargo<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
+        Step::run(format!(
+            "cargo {} {}",
+            cmd.to_string(),
+            params
+                .iter()
+                .map(|a| a.to_string())
+                .fold("".to_string(), |mut a, b| {
+                    a.push_str(&b);
+                    a
+                })
+        ))
+        .name(format!("Cargo {}", cmd.to_string()).to_case(Case::Title))
+    }
+
+    pub fn cargo_nightly<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
+        Step::cargo(format!("+nightly {}", cmd.to_string()), params)
     }
 }
 
@@ -427,8 +451,8 @@ impl Step<Use> {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
     }
 
-    pub fn setup_rust() -> RustToolchainStep {
-        RustToolchainStep::default()
+    pub fn setup_rust() -> ToolchainStep {
+        ToolchainStep::default()
     }
 }
 

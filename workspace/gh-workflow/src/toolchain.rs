@@ -42,7 +42,7 @@ pub enum Component {
 /// NOTE: The public API should be close to the original action as much as possible.
 #[derive(Default, Clone, Setters)]
 #[setters(strip_option)]
-pub struct RustToolchainStep {
+pub struct ToolchainStep {
     pub toolchain: Vec<Toolchain>,
     pub target: Option<String>,
     pub components: Vec<Component>,
@@ -56,14 +56,14 @@ pub struct RustToolchainStep {
     pub override_setup: bool,
 }
 
-impl RustToolchainStep {
+impl ToolchainStep {
     pub fn add_toolchain(mut self, version: Toolchain) -> Self {
         self.toolchain.push(version);
         self
     }
 }
 
-impl AddStep for RustToolchainStep {
+impl AddStep for ToolchainStep {
     fn apply(self, job: crate::Job) -> crate::Job {
         todo!()
     }

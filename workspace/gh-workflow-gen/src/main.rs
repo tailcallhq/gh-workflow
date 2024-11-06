@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use gh_workflow::{Job, Permissions, RustFlags, Step, Toolchain, Workflow};
 
 fn main() {
@@ -11,18 +13,14 @@ fn main() {
                 .add_toolchain(Toolchain::Nightly),
         )
         .add_step(
-            // TODO: Cargo commands should be more type-safe
-            Step::run("cargo test --all-features --workspace").name("Run Test"),
+            Step::cargo("test", vec!["--all-features", "--workspace"])
+                .timeout(Duration::from_secs(10)),
         )
-        .add_step(
-            // TODO: Cargo fmt command should be more type-safe
-            Step::run("cargo +nightly fmt --check").name("Run Fmt"),
-        )
-        .add_step(
-            // TODO: Cargo clippy command should be more type-safe
-            Step::run("cargo +nightly clippy --all-features --workspace -- -D warnings")
-                .name("Run Clippy"),
-        );
+        .add_step(Step::cargo_nightly("fmt", vec!["--check"]))
+        .add_step(Step::cargo_nightly(
+            "clippy",
+            vec!["--all-features", "--workspace", "-D", "warnings"],
+        ));
 
     Workflow::new("CI")
         .env(rust_flags)
