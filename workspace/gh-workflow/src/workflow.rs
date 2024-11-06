@@ -85,9 +85,9 @@ pub struct EventAction {
 }
 
 impl Workflow {
-    pub fn new<T: AsRef<str>>(name: T) -> Self {
+    pub fn new<T: ToString>(name: T) -> Self {
         Self {
-            name: Some(name.as_ref().to_string()),
+            name: Some(name.to_string()),
             permissions: Default::default(),
             on: Default::default(),
             run_name: Default::default(),
@@ -103,12 +103,12 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job<T: AsRef<str>>(mut self, id: T, job: Job) -> Result<Self> {
-        if self.jobs.contains_key(id.as_ref()) {
-            return Err(Error::JobIdAlreadyExists(id.as_ref().to_string()));
+    pub fn add_job<T: ToString>(mut self, id: T, job: Job) -> Result<Self> {
+        if self.jobs.contains_key(id.to_string().as_str()) {
+            return Err(Error::JobIdAlreadyExists(id.to_string()));
         }
 
-        self.jobs.insert(id.as_ref().to_string(), job);
+        self.jobs.insert(id.to_string(), job);
         Ok(self)
     }
 
@@ -157,9 +157,12 @@ impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec
     }
 }
 
-impl<S: AsRef<str>, W: Into<OneOrManyOrObject<String>>> Apply<Workflow> for Vec<(S, W)> {
+impl<S: ToString, W: Into<OneOrManyOrObject<String>>> Apply<Workflow> for Vec<(S, W)> {
     fn apply(self, mut workflow: Workflow) -> Workflow {
-        let val = self.into_iter().map(|(s, w)| (s.as_ref().to_string(), w.into())).collect();
+        let val = self
+            .into_iter()
+            .map(|(s, w)| (s.to_string(), w.into()))
+            .collect();
         workflow.on = Some(OneOrManyOrObject::KeyValue(val));
         workflow
     }
@@ -226,7 +229,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<Step<StepTy>>>,
+    pub steps: Option<Vec<Step<AnyStep>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -256,11 +259,11 @@ pub struct Job {
 }
 
 impl Job {
-    pub fn new<T: AsRef<str>>(name: T) -> Self {
-        Self { name: Some(name.as_ref().to_string()), ..Default::default() }
+    pub fn new<T: ToString>(name: T) -> Self {
+        Self { name: Some(name.to_string()), ..Default::default() }
     }
 
-    pub fn add_step<IntoStep: Into<Step<StepTy>>>(mut self, step: IntoStep) -> Self {
+    pub fn add_step<S: Into<Step<AnyStep>>>(mut self, step: S) -> Self {
         let mut steps = self.steps.unwrap_or_default();
         steps.push(step.into());
         self.steps = Some(steps);
@@ -301,45 +304,56 @@ pub enum OneOrMany<T> {
     Multiple(Vec<T>),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-pub struct Run(String);
+// #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+// pub struct Run(String);
 
-impl Run {
-    pub fn new<T: AsRef<str>>(run: T) -> Self {
-        Self(run.as_ref().to_string())
-    }
-}
+// impl Run {
+//     pub fn new<T: ToString>(run: T) -> Self {
+//         Self(run.to_string())
+//     }
+// }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-pub struct Uses(String);
+// #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+// pub struct Use(String);
 
-impl Uses {
-    pub fn new<T: AsRef<str>>(uses: T) -> Self {
-        Self(uses.as_ref().to_string())
-    }
-}
+// impl Use {
+//     pub fn new<T: ToString>(uses: T) -> Self {
+//         Self(uses.to_string())
+//     }
+// }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub enum StepTy {
+pub enum AnyStep {
     Run,
-    Uses,
+    Use,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct Use;
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct Run;
+
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-pub struct Step<Ty> {
+#[setters(strip_option)]
+pub struct Step<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
     pub if_condition: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uses: Option<Uses>,
+    #[setters(skip)]
+    pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub with: Option<IndexMap<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub run: Option<Run>,
+    #[setters(skip)]
+    pub run: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -354,70 +368,33 @@ pub struct Step<Ty> {
     pub artifacts: Option<Artifacts>,
 
     #[serde(skip)]
-    marker: std::marker::PhantomData<Ty>,
+    marker: std::marker::PhantomData<T>,
+}
+
+impl<T> Step<T> {
+    pub fn name<S: ToString>(mut self, name: S) -> Self {
+        self.name = Some(name.to_string());
+        self
+    }
 }
 
 impl Step<Run> {
-    pub fn run<T: AsRef<str>>(self, run: T) -> Step<Run> {
-        Step {
-            run: Some(Run::new(run)),
-            ..self
-        }
+    pub fn run<T: ToString>(self, cmd: T) -> Self {
+        Step { run: Some(cmd.to_string()), ..self }
     }
 }
 
-impl Step<Uses> {
-    pub fn uses<T: AsRef<str>>(self, uses: T) -> Step<Uses> {
+impl Step<Use> {
+    pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
         Step {
-            uses: Some(Uses::new(uses)),
-            ..self
+            uses: Some(format!(
+                "{}/{}@{}",
+                owner.to_string(),
+                repo.to_string(),
+                version.to_string()
+            )),
+            ..Default::default()
         }
-    }
-}
-
-impl Into<Step<StepTy>> for Step<Uses> {
-    fn into(self) -> Step<StepTy> {
-        Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
-            uses: self.uses,
-            with: self.with,
-            run: self.run,
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
-            marker: Default::default(),
-        }
-    }
-}
-
-impl Into<Step<StepTy>> for Step<Run> {
-    fn into(self) -> Step<StepTy> {
-        Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
-            uses: self.uses,
-            with: self.with,
-            run: self.run,
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
-            marker: Default::default(),
-        }
-    }
-}
-
-impl<Ty: Default> Step<Ty> {
-    pub fn new<T: AsRef<str>>(name: T) -> Self {
-        Self { name: Some(name.as_ref().to_string()), ..Default::default() }
     }
 
     pub fn with<K: Apply<Self>>(self, item: K) -> Self {
@@ -425,12 +402,8 @@ impl<Ty: Default> Step<Ty> {
     }
 }
 
-pub trait Apply<Value> {
-    fn apply(self, value: Value) -> Value;
-}
-
-impl<Ty> Apply<Step<Ty>> for IndexMap<String, Value> {
-    fn apply(self, mut step: Step<Ty>) -> Step<Ty> {
+impl Apply<Step<Use>> for IndexMap<String, Value> {
+    fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut with = step.with.unwrap_or_default();
         with.extend(self);
         step.with = Some(with);
@@ -438,13 +411,54 @@ impl<Ty> Apply<Step<Ty>> for IndexMap<String, Value> {
     }
 }
 
-impl<Ty, S: AsRef<str>> Apply<Step<Ty>> for (S, S) {
+impl Into<Step<AnyStep>> for Step<Use> {
+    fn into(self) -> Step<AnyStep> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: self.uses,
+            with: self.with,
+            run: self.run,
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Into<Step<AnyStep>> for Step<Run> {
+    fn into(self) -> Step<AnyStep> {
+        Step {
+            id: self.id,
+            name: self.name,
+            if_condition: self.if_condition,
+            uses: self.uses,
+            with: self.with,
+            run: self.run,
+            env: self.env,
+            timeout_minutes: self.timeout_minutes,
+            continue_on_error: self.continue_on_error,
+            working_directory: self.working_directory,
+            retry: self.retry,
+            artifacts: self.artifacts,
+            marker: Default::default(),
+        }
+    }
+}
+
+pub trait Apply<Value> {
+    fn apply(self, value: Value) -> Value;
+}
+
+impl<Ty, S: ToString> Apply<Step<Ty>> for (S, S) {
     fn apply(self, mut step: Step<Ty>) -> Step<Ty> {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
-        index_map.insert(
-            self.0.as_ref().to_string(),
-            Value::String(self.1.as_ref().to_string()),
-        );
+        index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));
         step.with = Some(index_map);
         step
     }
@@ -629,8 +643,8 @@ pub struct RetryDefaults {
 pub struct Expression(String);
 
 impl Expression {
-    pub fn new<T: AsRef<str>>(expr: T) -> Self {
-        Self(expr.as_ref().to_string())
+    pub fn new<T: ToString>(expr: T) -> Self {
+        Self(expr.to_string())
     }
 }
 

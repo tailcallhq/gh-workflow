@@ -8,8 +8,14 @@ fn main() {
     let job = Job::new("Run tests")
         .runs_on("ubuntu-latest")
         .timeout(Duration::from_secs(10 * 60))
-        .add_step(Step::new("Checkout code").uses("actions/checkout@v4"))
+        .add_step(Step::uses("actions", "checkout", 4).name("Checkout code"))
         .add_step(
+            Step::uses("actions-rust-lang", "setup-rust-toolchain", 1).name("Setup rust").with(
+                (
+                    "toolchain",
+                    "stable",
+                ),
+            ),
             Step::new("Setup rust")
                 .uses("actions-rust-lang/setup-rust-toolchain@v1")
                 .with(("toolchain", "stable")),
