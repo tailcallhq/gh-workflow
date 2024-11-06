@@ -1,4 +1,6 @@
 name: CI
+env:
+  RUSTFLAGS: -AWarnings
 on:
   push:
     branches:
@@ -14,7 +16,7 @@ permissions:
   contents: read
 jobs:
   stable:
-    name: Rust Job
+    name: Build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
@@ -24,9 +26,9 @@ jobs:
       with:
         toolchain: stable
     - name: Run Cargo Test
-      run: RUSTFLAGS="-Awarnings" cargo test --all-features --workspace
+      run: cargo test --all-features --workspace
   nightly:
-    name: Rust Job
+    name: Nightly
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
@@ -35,7 +37,7 @@ jobs:
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
-    - name: Check Formatting
-      run: cargo fmt -- --check
-    - name: Run Clippy
-      run: cargo clippy -- -D warnings
+    - name: Run Cargo Test
+      run: cargo nightly fmt --all-features --workspace -- check
+    - name: Run Cargo Test
+      run: 'cargo nightly clippy --all-features --workspace -- -D warnings '

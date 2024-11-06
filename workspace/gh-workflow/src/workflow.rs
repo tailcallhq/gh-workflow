@@ -3,7 +3,7 @@ use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{path::Path, time::Duration};
+use std::{fmt::Display, path::Path, time::Duration};
 
 use crate::error::{Error, Result};
 
@@ -68,6 +68,9 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
+    pub env: Option<IndexMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
@@ -81,9 +84,7 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<IndexMap<String, Secret>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub env: Option<IndexMap<String, String>>,
+    pub secrets: Option<IndexMap<String, Secret>>,    
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
 }
@@ -119,6 +120,7 @@ impl Workflow {
     pub fn parse(yml: &str) -> Result<Self> {
         Ok(serde_yaml::from_str(yml)?)
     }
+
     pub fn generate<T: AsRef<Path>>(self, path: T) -> Result<()> {
         let path = path.as_ref();
         path.parent()
@@ -126,11 +128,14 @@ impl Workflow {
             .map_err(Error::Io)?;
 
         std::fs::write(path, self.to_string()?).map_err(Error::Io)?;
-        println!("Generated workflow file: {}", path.canonicalize()?.display());
+        println!(
+            "Generated workflow file: {}",
+            path.canonicalize()?.display()
+        );
         Ok(())
     }
 
-    pub fn on<T: Apply<Self>>(self, a: T) -> Self {
+    pub fn on<T: AsEvent<Self>>(self, a: T) -> Self {
         a.apply(self)
     }
 
@@ -138,20 +143,31 @@ impl Workflow {
         self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
         self
     }
+
+    pub fn env<T: AsEnv<Self>>(self, env: T) -> Self {
+        env.apply(self)
+    }
 }
 
+pub trait AsEvent<Value> {
+    fn apply(self, value: Value) -> Value;
+}
+
+// TODO: inline this conversion in actual usage
 impl Into<OneOrManyOrObject<String>> for &str {
     fn into(self) -> OneOrManyOrObject<String> {
         OneOrManyOrObject::Single(self.to_string())
     }
 }
 
+// TODO: inline this conversion in actual usage
 impl Into<OneOrManyOrObject<String>> for Vec<&str> {
     fn into(self) -> OneOrManyOrObject<String> {
         OneOrManyOrObject::Multiple(self.into_iter().map(|s| s.to_string()).collect())
     }
 }
 
+// TODO: inline this conversion in actual usage
 impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec<(&str, V)> {
     fn into(self) -> OneOrManyOrObject<String> {
         let mut map = IndexMap::new();
@@ -162,7 +178,7 @@ impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec
     }
 }
 
-impl<S: ToString, W: Into<OneOrManyOrObject<String>>> Apply<Workflow> for Vec<(S, W)> {
+impl<S: Display, W: Into<OneOrManyOrObject<String>>> AsEvent<Workflow> for Vec<(S, W)> {
     fn apply(self, mut workflow: Workflow) -> Workflow {
         let val = self
             .into_iter()
@@ -173,14 +189,14 @@ impl<S: ToString, W: Into<OneOrManyOrObject<String>>> Apply<Workflow> for Vec<(S
     }
 }
 
-impl Apply<Workflow> for Vec<&str> {
+impl AsEvent<Workflow> for Vec<&str> {
     fn apply(self, workflow: Workflow) -> Workflow {
         let on = self.into_iter().map(|s| s.to_string()).collect();
         Workflow { on: Some(OneOrManyOrObject::Multiple(on)), ..workflow }
     }
 }
 
-impl Apply<Workflow> for &str {
+impl AsEvent<Workflow> for &str {
     fn apply(self, workflow: Workflow) -> Workflow {
         let on = self.to_string();
         Workflow { on: Some(OneOrManyOrObject::Single(on)), ..workflow }
@@ -229,8 +245,6 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub runs_on: Option<OneOrManyOrObject<String>>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "env")]
-    pub environment: Option<IndexMap<String, Expression>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -254,6 +268,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub env: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
@@ -265,7 +280,11 @@ pub struct Job {
 
 impl Job {
     pub fn new<T: ToString>(name: T) -> Self {
-        Self { name: Some(name.to_string()), ..Default::default() }
+        Self {
+            name: Some(name.to_string().to_case(Case::Title)),
+            runs_on: Some(OneOrManyOrObject::Single("ubuntu-latest".to_string())),
+            ..Default::default()
+        }
     }
 
     pub fn add_step<S: Into<Step<AnyStep>>>(mut self, step: S) -> Self {
@@ -275,7 +294,7 @@ impl Job {
         self
     }
 
-    pub fn runs_on<T: Apply<Self>>(self, a: T) -> Self {
+    pub fn runs_on<T: AsEnv<Self>>(self, a: T) -> Self {
         a.apply(self)
     }
 
@@ -283,9 +302,13 @@ impl Job {
         self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
         self
     }
+
+    pub fn env<T: AsEnv<Self>>(self, env: T) -> Self {
+        env.apply(self)
+    }
 }
 
-impl<T: ToString> Apply<Job> for T {
+impl<T: ToString> AsRunner<Job> for T {
     fn apply(self, mut job: Job) -> Job {
         job.runs_on = Some(OneOrManyOrObject::Single(self.to_string()));
         job
@@ -342,6 +365,7 @@ pub struct Step<T> {
     #[setters(skip)]
     pub run: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub env: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
@@ -362,6 +386,10 @@ impl<T> Step<T> {
     pub fn name<S: ToString>(mut self, name: S) -> Self {
         self.name = Some(name.to_string().to_case(Case::Title));
         self
+    }
+
+    pub fn env<R: AsEnv<Self>>(self, env: R) -> Self {
+        env.apply(self)
     }
 }
 
@@ -384,17 +412,30 @@ impl Step<Use> {
         }
     }
 
-    pub fn with<K: Apply<Self>>(self, item: K) -> Self {
+    pub fn with<K: AsEnv<Self>>(self, item: K) -> Self {
         item.apply(self)
+    }
+
+    pub fn checkout() -> Self {
+        Step::uses("actions", "checkout", 4).name("Checkout Code")
     }
 }
 
-impl Apply<Step<Use>> for IndexMap<String, Value> {
+impl AsEnv<Step<Use>> for IndexMap<String, Value> {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut with = step.with.unwrap_or_default();
         with.extend(self);
         step.with = Some(with);
         step
+    }
+}
+
+impl<S1: Display, S2: Display> AsEnv<Job> for (S1, S2) {
+    fn apply(self, mut value: Job) -> Job {
+        let mut index_map: IndexMap<String, String> = value.env.unwrap_or_default();
+        index_map.insert(self.0.to_string(), self.1.to_string());
+        value.env = Some(index_map);
+        value
     }
 }
 
@@ -438,11 +479,15 @@ impl Into<Step<AnyStep>> for Step<Run> {
     }
 }
 
-pub trait Apply<Value> {
+pub trait AsEnv<Value> {
     fn apply(self, value: Value) -> Value;
 }
 
-impl<S1: ToString, S2: ToString> Apply<Step<Use>> for (S1, S2) {
+pub trait AsRunner<Value> {
+    fn apply(self, value: Value) -> Value;
+}
+
+impl<S1: Display, S2: Display> AsEnv<Step<Use>> for (S1, S2) {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
         index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));
