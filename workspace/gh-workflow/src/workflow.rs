@@ -379,8 +379,8 @@ impl<T> Step<T> {
 }
 
 impl Step<Run> {
-    pub fn run<T: ToString>(self, cmd: T) -> Self {
-        Step { run: Some(cmd.to_string()), ..self }
+    pub fn run<T: ToString>(cmd: T) -> Self {
+        Step { run: Some(cmd.to_string()), ..Default::default() }
     }
 }
 
@@ -388,7 +388,7 @@ impl Step<Use> {
     pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
         Step {
             uses: Some(format!(
-                "{}/{}@{}",
+                "{}/{}@v{}",
                 owner.to_string(),
                 repo.to_string(),
                 version.to_string()

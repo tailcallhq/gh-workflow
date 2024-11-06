@@ -16,13 +16,10 @@ fn main() {
                     "stable",
                 ),
             ),
-            Step::new("Setup rust")
-                .uses("actions-rust-lang/setup-rust-toolchain@v1")
-                .with(("toolchain", "stable")),
         )
         .add_step(
-            Step::new("Run tests")
-                .run("RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace"),
+            Step::run("RUSTFLAGS=\"-Awarnings\" cargo test --all-features --workspace")
+                .name("Run tests"),
         );
 
     let workflow = gh_workflow::Workflow::new("CI")
