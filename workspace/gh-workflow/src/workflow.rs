@@ -139,6 +139,61 @@ pub struct Job {
     pub artifacts: Option<Artifacts>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, strum_macros::Display)]
+#[serde(rename_all = "kebab-case")]
+pub enum CargoCommand {
+    Add,
+    Bench,
+    Build,
+    Check,
+    Chef,
+    Clean,
+    Clippy,
+    Component,
+    Config,
+    Criterion,
+    Doc,
+    Expand,
+    Fetch,
+    Fix,
+    Flamegraph,
+    Fmt,
+    Generate,
+    GenerateLockfile,
+    GitCheckout,
+    Help,
+    Info,
+    Init,
+    Insta,
+    Install,
+    LocateProject,
+    Login,
+    Logout,
+    Make,
+    Metadata,
+    Miri,
+    New,
+    Owner,
+    Package,
+    ReadManifest,
+    Remove,
+    Report,
+    Run,
+    Rustc,
+    Rustdoc,
+    Search,
+    Test,
+    Tree,
+    Udeps,
+    Uninstall,
+    Update,
+    Vendor,
+    VerifyProject,
+    Version,
+    Watch,
+    Yank,
+}
+
 impl Job {
     pub fn new<T: ToString>(name: T) -> Self {
         Self {
@@ -260,20 +315,28 @@ impl Step<Run> {
         Step { run: Some(cmd.to_string()), ..Default::default() }
     }
 
-    pub fn cargo<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
+    fn prepare_args<P: ToString>(params: Vec<P>) -> String {
+        params
+            .iter()
+            .map(|a| a.to_string())
+            .reduce(|a, b| format!("{} {}", a, b))
+            .unwrap_or_default()
+    }
+    fn cargo_command<P: ToString>(prefix: Option<&str>, cmd: CargoCommand, params: Vec<P>) -> Self {
         Step::run(format!(
-            "cargo {} {}",
-            cmd.to_string(),
-            params
-                .iter()
-                .map(|a| a.to_string())
-                .reduce(|a, b| { format!("{} {}", a, b) })
-                .unwrap_or_default()
+            "cargo{} {} {}",
+            prefix.map(|v| format!(" {}", v)).unwrap_or_default(),
+            cmd.to_string().to_lowercase(),
+            Self::prepare_args(params)
         ))
     }
 
-    pub fn cargo_nightly<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
-        Step::cargo(format!("+nightly {}", cmd.to_string()), params)
+    pub fn cargo<P: ToString>(cmd: CargoCommand, params: Vec<P>) -> Self {
+        Self::cargo_command(None, cmd, params)
+    }
+
+    pub fn cargo_nightly<P: ToString>(cmd: CargoCommand, params: Vec<P>) -> Self {
+        Self::cargo_command(Some("+nightly"), cmd, params)
     }
 }
 
