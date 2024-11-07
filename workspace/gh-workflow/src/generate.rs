@@ -1,21 +1,21 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
 use crate::Workflow;
 
 pub struct Generate {
     workflow: Workflow,
-    path: String,
+    path: PathBuf,
 }
 
 impl Generate {
-    pub fn new<P: ToString>(workflow: Workflow, path: P) -> Self {
-        Self { workflow, path: path.to_string() }
+    pub fn new<P: AsRef<Path>>(workflow: Workflow, path: P) -> Self {
+        Self { workflow, path: path.as_ref().to_path_buf() }
     }
 
     pub fn generate(&self) -> Result<()> {
         let comment = include_str!("./comment.yml");
-        let path = Path::new(self.path.as_str());
+        let path = self.path.as_path();
 
         path.parent()
             .map_or(Ok(()), std::fs::create_dir_all)

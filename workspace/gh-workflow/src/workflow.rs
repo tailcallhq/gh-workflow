@@ -1,6 +1,7 @@
 #![allow(clippy::needless_update)]
 
 use std::fmt::Display;
+use std::path::Path;
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
@@ -71,7 +72,7 @@ impl Workflow {
         Ok(serde_yaml::from_str(yml)?)
     }
 
-    pub fn generate<T: ToString>(self, path: T) -> Result<()> {
+    pub fn generate<T: AsRef<Path>>(self, path: T) -> Result<()> {
         Generate::new(self, path).generate()
     }
 
