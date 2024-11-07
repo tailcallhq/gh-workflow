@@ -46,7 +46,7 @@ pub struct Event {
 }
 
 // TODO: rename event
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum BranchEvent {
     Created,
     #[default]
@@ -54,7 +54,7 @@ pub enum BranchEvent {
     Deleted,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum CheckRunEvent {
     #[default]
     Created,
@@ -75,7 +75,7 @@ impl Display for CheckRunEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum CheckSuiteEvent {
     #[default]
     Completed,
@@ -105,7 +105,7 @@ impl Display for BranchEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum PullRequestEvent {
     Assigned,
     Unassigned,
@@ -160,7 +160,7 @@ impl Display for PullRequestEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum DiscussionEvent {
     #[default]
     Created,
@@ -199,7 +199,7 @@ impl Display for DiscussionEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum DiscussionCommentEvent {
     #[default]
     Created,
@@ -218,7 +218,7 @@ impl Display for DiscussionCommentEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum IssueCommentEvent {
     #[default]
     Created,
@@ -237,7 +237,7 @@ impl Display for IssueCommentEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum IssuesEvent {
     #[default]
     Opened,
@@ -282,7 +282,7 @@ impl Display for IssuesEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum LabelEvent {
     #[default]
     Created,
@@ -301,7 +301,7 @@ impl Display for LabelEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum MergeGroupEvent {
     #[default]
     ChecksRequested,
@@ -316,7 +316,7 @@ impl Display for MergeGroupEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum MilestoneEvent {
     #[default]
     Created,
@@ -339,7 +339,7 @@ impl Display for MilestoneEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum ProjectEvent {
     #[default]
     Created,
@@ -364,7 +364,7 @@ impl Display for ProjectEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum ProjectCardEvent {
     #[default]
     Created,
@@ -374,21 +374,20 @@ pub enum ProjectCardEvent {
     Deleted,
 }
 
-impl Display for ProjectEvent {
+impl Display for ProjectCardEvent {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            ProjectEvent::Created => "created",
-            ProjectEvent::Updated => "updated",
-            ProjectEvent::Closed => "closed",
-            ProjectEvent::Reopened => "reopened",
-            ProjectEvent::Edited => "edited",
-            ProjectEvent::Deleted => "deleted",
+            ProjectCardEvent::Created => "created",
+            ProjectCardEvent::Moved => "moved",
+            ProjectCardEvent::Converted => "converted",
+            ProjectCardEvent::Edited => "edited",
+            ProjectCardEvent::Deleted => "deleted",
         };
         write!(f, "{}", val)
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum ProjectColumnEvent {
     #[default]
     Created,
@@ -409,7 +408,7 @@ impl Display for ProjectColumnEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum PullRequestReviewEvent {
     #[default]
     Submitted,
@@ -428,7 +427,7 @@ impl Display for PullRequestReviewEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum PullRequestReviewCommentEvent {
     #[default]
     Created,
@@ -447,7 +446,7 @@ impl Display for PullRequestReviewCommentEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum PullRequestTargetEvent {
     #[default]
     Assigned,
@@ -499,26 +498,6 @@ impl Display for PullRequestTargetEvent {
 }
 
 #[derive(Default, Serialize, Clone)]
-#[serde(rename_all = "snake_case")]
-pub enum WorkflowInputDefault {
-    #[default]
-    BooleanOption(Option<bool>),
-    NumberOption(Option<f64>),
-    StringOption(Option<String>),
-}
-
-impl Display for WorkflowInputDefault {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            WorkflowInputDefault::BooleanOption(val) => val.map_or("".to_string(), |v| v.to_string()),
-            WorkflowInputDefault::NumberOption(val) => val.map_or("".to_string(), |v| v.to_string()),
-            WorkflowInputDefault::StringOption(val) => val.as_ref().map_or("".to_string(), |v| v.to_string()),
-        };
-        write!(f, "{}", val)
-    }
-}
-
-#[derive(Default, Clone)]
 pub enum RegistryPackageEvent {
     #[default]
     Published,
@@ -535,7 +514,7 @@ impl Display for RegistryPackageEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum ReleaseEvent {
     #[default]
     Published,
@@ -562,7 +541,7 @@ impl Display for ReleaseEvent {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Serialize, Clone)]
 pub enum WorkflowRunEvent {
     #[default]
     Requested,
@@ -782,7 +761,6 @@ pub struct WorkflowInput {
     pub deprecation_message: Option<String>,
     pub required: Option<bool>,
     pub input_type: String, // "boolean", "number", or "string"
-    pub default: Option<WorkflowInputDefault>,
 }
 
 #[derive(Default, Serialize, Clone)]
