@@ -2,51 +2,86 @@ use std::fmt::{Display, Formatter};
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::Serialize;
-
+use crate::is_default;
 use crate::SetEvent;
 
 #[derive(Serialize, Setters, Clone)]
 #[serde(rename_all = "snake_case")]
 #[setters(strip_option)]
 pub struct Event {
+    #[serde(skip_serializing_if = "is_default")]
     pub push: Option<Push>,
+    #[serde(skip_serializing_if = "is_default")]
     pub pull_request: Option<PullRequest>,
+    #[serde(skip_serializing_if = "is_default")]
     pub branch_protection_rule: Option<BranchProtectionRule>,
+    #[serde(skip_serializing_if = "is_default")]
     pub check_run: Option<CheckRun>,
+    #[serde(skip_serializing_if = "is_default")]
     pub check_suite: Option<CheckSuite>,
+    #[serde(skip_serializing_if = "is_default")]
     pub create: Option<Create>,
+    #[serde(skip_serializing_if = "is_default")]
     pub delete: Option<Delete>,
+    #[serde(skip_serializing_if = "is_default")]
     pub deployment: Option<Deployment>,
+    #[serde(skip_serializing_if = "is_default")]
     pub deployment_status: Option<DeploymentStatus>,
+    #[serde(skip_serializing_if = "is_default")]
     pub discussion: Option<Discussion>,
+    #[serde(skip_serializing_if = "is_default")]
     pub discussion_comment: Option<DiscussionComment>,
+    #[serde(skip_serializing_if = "is_default")]
     pub fork: Option<Fork>,
+    #[serde(skip_serializing_if = "is_default")]
     pub gollum: Option<Gollum>,
+    #[serde(skip_serializing_if = "is_default")]
     pub issue_comment: Option<IssueComment>,
+    #[serde(skip_serializing_if = "is_default")]
     pub issues: Option<Issues>,
+    #[serde(skip_serializing_if = "is_default")]
     pub label: Option<Label>,
+    #[serde(skip_serializing_if = "is_default")]
     pub merge_group: Option<MergeGroup>,
+    #[serde(skip_serializing_if = "is_default")]
     pub milestone: Option<Milestone>,
+    #[serde(skip_serializing_if = "is_default")]
     pub page_build: Option<PageBuild>,
+    #[serde(skip_serializing_if = "is_default")]
     pub project: Option<Project>,
+    #[serde(skip_serializing_if = "is_default")]
     pub project_card: Option<ProjectCard>,
+    #[serde(skip_serializing_if = "is_default")]
     pub project_column: Option<ProjectColumn>,
+    #[serde(skip_serializing_if = "is_default")]
     pub public: Option<Public>,
+    #[serde(skip_serializing_if = "is_default")]
     pub pull_request_review: Option<PullRequestReview>,
+    #[serde(skip_serializing_if = "is_default")]
     pub pull_request_review_comment: Option<PullRequestReviewComment>,
+    #[serde(skip_serializing_if = "is_default")]
     pub pull_request_target: Option<PullRequestTarget>,
+    #[serde(skip_serializing_if = "is_default")]
     pub registry_package: Option<RegistryPackage>,
+    #[serde(skip_serializing_if = "is_default")]
     pub release: Option<Release>,
+    #[serde(skip_serializing_if = "is_default")]
     pub status: Option<Status>,
+    #[serde(skip_serializing_if = "is_default")]
     pub watch: Option<Watch>,
+    #[serde(skip_serializing_if = "is_default")]
     pub workflow_call: Option<WorkflowCall>,
+    #[serde(skip_serializing_if = "is_default")]
     pub workflow_dispatch: Option<WorkflowDispatch>,
+    #[serde(skip_serializing_if = "is_default")]
     pub workflow_run: Option<WorkflowRun>,
+    #[serde(skip_serializing_if = "is_default")]
     pub repository_dispatch: Option<RepositoryDispatch>,
 }
 
 // TODO: rename event
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum BranchEvent {
     Created,
     #[default]
@@ -54,7 +89,8 @@ pub enum BranchEvent {
     Deleted,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum CheckRunEvent {
     #[default]
     Created,
@@ -75,7 +111,8 @@ impl Display for CheckRunEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum CheckSuiteEvent {
     #[default]
     Completed,
@@ -105,7 +142,8 @@ impl Display for BranchEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum PullRequestEvent {
     Assigned,
     Unassigned,
@@ -160,7 +198,8 @@ impl Display for PullRequestEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum DiscussionEvent {
     #[default]
     Created,
@@ -199,7 +238,8 @@ impl Display for DiscussionEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum DiscussionCommentEvent {
     #[default]
     Created,
@@ -218,7 +258,8 @@ impl Display for DiscussionCommentEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum IssueCommentEvent {
     #[default]
     Created,
@@ -237,7 +278,8 @@ impl Display for IssueCommentEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum IssuesEvent {
     #[default]
     Opened,
@@ -282,7 +324,8 @@ impl Display for IssuesEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum LabelEvent {
     #[default]
     Created,
@@ -301,7 +344,8 @@ impl Display for LabelEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum MergeGroupEvent {
     #[default]
     ChecksRequested,
@@ -316,7 +360,8 @@ impl Display for MergeGroupEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum MilestoneEvent {
     #[default]
     Created,
@@ -339,7 +384,8 @@ impl Display for MilestoneEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectEvent {
     #[default]
     Created,
@@ -364,7 +410,8 @@ impl Display for ProjectEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectCardEvent {
     #[default]
     Created,
@@ -387,7 +434,8 @@ impl Display for ProjectCardEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectColumnEvent {
     #[default]
     Created,
@@ -408,7 +456,8 @@ impl Display for ProjectColumnEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewEvent {
     #[default]
     Submitted,
@@ -427,7 +476,8 @@ impl Display for PullRequestReviewEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewCommentEvent {
     #[default]
     Created,
@@ -446,7 +496,8 @@ impl Display for PullRequestReviewCommentEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum PullRequestTargetEvent {
     #[default]
     Assigned,
@@ -497,7 +548,8 @@ impl Display for PullRequestTargetEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum RegistryPackageEvent {
     #[default]
     Published,
@@ -514,7 +566,8 @@ impl Display for RegistryPackageEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum ReleaseEvent {
     #[default]
     Published,
@@ -541,7 +594,8 @@ impl Display for ReleaseEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum WorkflowRunEvent {
     #[default]
     Requested,
@@ -560,200 +614,200 @@ impl Display for WorkflowRunEvent {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Push {
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Public {
     // TODO: needs review
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequest {
     types: Vec<PullRequestEvent>,
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct BranchProtectionRule {
     types: Vec<BranchEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct CheckRun {
     types: Vec<CheckRunEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct CheckSuite {
     types: Vec<CheckSuiteEvent>,
 }
 
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Create {
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Delete {
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Deployment {
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct DeploymentStatus {
     branches: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Discussion {
     types: Vec<DiscussionEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct DiscussionComment {
     types: Vec<DiscussionCommentEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Fork {
     // TODO: needs check
     types: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Gollum {
     // TODO: needs check
     types: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct IssueComment {
     types: Vec<IssueCommentEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Issues {
     types: Vec<IssuesEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Label {
     types: Vec<LabelEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct MergeGroup {
     types: Vec<MergeGroupEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Milestone {
     types: Vec<MilestoneEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PageBuild {
     // TODO: needs review
     types: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Project {
     types: Vec<ProjectEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct ProjectCard {
     types: Vec<ProjectCardEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct ProjectColumn {
     types: Vec<ProjectColumnEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestReview {
     types: Vec<PullRequestReviewEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestReviewComment {
     types: Vec<PullRequestReviewCommentEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestTarget {
     types: Vec<PullRequestTargetEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct RegistryPackage {
     types: Vec<RegistryPackageEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Release {
     types: Vec<ReleaseEvent>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Status {
     // TODO: needs review
     types: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Watch {
     // TODO: needs review
     types: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowCall {
     pub inputs: IndexMap<String, WorkflowInput>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowInput {
     // TODO: needs review
@@ -763,14 +817,14 @@ pub struct WorkflowInput {
     pub input_type: String, // "boolean", "number", or "string"
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowDispatch {
     // TODO: needs review (this is probably incorrect)
     pub inputs: IndexMap<String, WorkflowInput>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowRun {
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -779,7 +833,7 @@ pub struct WorkflowRun {
     workflows: Vec<String>,
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct RepositoryDispatch {
     #[serde(skip_serializing_if = "Vec::is_empty")]
