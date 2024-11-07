@@ -1,6 +1,6 @@
 name: CI
 env:
-  RUSTFLAGS: -DWarnings
+  RUSTFLAGS: -Dwarnings
 on:
   push:
     branches:
