@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+built = {version = "0.7.5", optional = true}
+
 async-trait = "0.1.83"
 derive_more = { version = "1.0.0", features = ["from"] }
 derive_setters = "0.1.6"
@@ -15,3 +17,6 @@ serde_yaml = "0.9.34"
 [dev-dependencies]
 insta = "1.40.0"
 pretty_assertions = "1.4.1"
+
+[features]
+validate = ["built"]

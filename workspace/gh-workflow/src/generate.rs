@@ -23,6 +23,9 @@ impl Generate {
 
         let content = format!("{}\n{}", comment, self.workflow.to_string()?);
 
+        #[cfg(feature = "validate")]
+        crate::validate::validate(&content, path)?;
+
         std::fs::write(path, content).map_err(Error::IO)?;
 
         println!(
