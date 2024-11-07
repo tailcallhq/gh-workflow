@@ -1,25 +1,20 @@
-use std::time::Duration;
-
 use gh_workflow::{Job, Permissions, RustFlags, Step, Toolchain, Workflow};
 
 fn main() {
     let rust_flags = RustFlags::deny("Warnings");
 
-    let build = Job::new("build")
+    let build = Job::new("Build and Test")
         .add_step(Step::checkout())
         .add_step(
             Step::setup_rust()
                 .add_toolchain(Toolchain::Stable)
                 .add_toolchain(Toolchain::Nightly),
         )
-        .add_step(
-            Step::cargo("test", vec!["--all-features", "--workspace"])
-                .timeout(Duration::from_secs(10)),
-        )
+        .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]))
         .add_step(Step::cargo_nightly("fmt", vec!["--check"]))
         .add_step(Step::cargo_nightly(
             "clippy",
-            vec!["--all-features", "--workspace", "-D", "warnings"],
+            vec!["--all-features", "--workspace"],
         ));
 
     Workflow::new("CI")

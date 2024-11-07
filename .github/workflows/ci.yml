@@ -1,6 +1,6 @@
 name: CI
 env:
-  RUSTFLAGS: -AWarnings
+  RUSTFLAGS: -D Warnings
 on:
   push:
     branches:
@@ -15,29 +15,15 @@ on:
 permissions:
   contents: read
 jobs:
-  stable:
-    name: Build
+  build:
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    - name: Setup Rust Toolchain
-      uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: stable
-    - name: Run Test
-      run: cargo test --all-features --workspace
-  nightly:
-    name: Nightly
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    - name: Setup Rust Toolchain
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-      with:
-        toolchain: nightly
-    - name: Run Fmt
-      run: cargo nightly fmt --all-features --workspace -- check
-    - name: Run Clippy
-      run: 'cargo +nightly clippy --all-features --workspace -- -D warnings '
+        toolchain: stable,nightly
+    - run: cargo test --all-features --workspace
+    - run: cargo +nightly fmt --check
+    - run: cargo +nightly clippy --all-features --workspace

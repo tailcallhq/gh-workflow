@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.83"
-convert_case = "0.6.0"
 derive_more = { version = "1.0.0", features = ["from"] }
 derive_setters = "0.1.6"
 indexmap = {version = "2.6.0", features = ["serde"]}

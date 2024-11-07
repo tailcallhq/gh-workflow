@@ -76,7 +76,8 @@ pub struct Target {
 
 /// A Rust representation for the inputs of the setup-rust action.
 /// More information can be found [here](https://github.com/actions-rust-lang/setup-rust-toolchain/blob/main/action.yml).
-/// NOTE: The public API should be close to the original action as much as possible.
+/// NOTE: The public API should be close to the original action as much as
+/// possible.
 #[derive(Default, Clone, Setters)]
 #[setters(strip_option)]
 pub struct ToolchainStep {
@@ -104,19 +105,19 @@ impl AddStep for ToolchainStep {
     fn apply(self, job: Job) -> Job {
         let mut step = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
 
-        if !self.toolchain.is_empty() {
-            let toolchain = self
-                .toolchain
-                .iter()
-                .map(|t| match t {
-                    Toolchain::Stable => "stable".to_string(),
-                    Toolchain::Nightly => "nightly".to_string(),
-                    Toolchain::Custom((major, minor, patch)) => {
-                        format!("{}.{}.{}", major, minor, patch)
-                    }
-                })
-                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
+        let toolchain = self
+            .toolchain
+            .iter()
+            .map(|t| match t {
+                Toolchain::Stable => "stable".to_string(),
+                Toolchain::Nightly => "nightly".to_string(),
+                Toolchain::Custom((major, minor, patch)) => {
+                    format!("{}.{}.{}", major, minor, patch)
+                }
+            })
+            .reduce(|acc, a| format!("{},{}", acc, a));
 
+        if let Some(toolchain) = toolchain {
             step = step.with(("toolchain", toolchain));
         }
 

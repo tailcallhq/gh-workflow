@@ -1,14 +1,13 @@
-use convert_case::{Case, Casing};
+use std::fmt::Display;
+use std::path::Path;
+
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{fmt::Display, path::Path, time::Duration};
 
-use crate::{
-    error::{Error, Result},
-    ToolchainStep,
-};
+use crate::error::{Error, Result};
+use crate::ToolchainStep;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]
@@ -126,11 +125,6 @@ impl Workflow {
 
     pub fn on<T: SetEvent>(self, a: T) -> Self {
         a.apply(self)
-    }
-
-    pub fn timeout(mut self, duration: Duration) -> Self {
-        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
-        self
     }
 
     pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
@@ -266,7 +260,7 @@ pub struct Job {
 impl Job {
     pub fn new<T: ToString>(name: T) -> Self {
         Self {
-            name: Some(name.to_string().to_case(Case::Title)),
+            name: Some(name.to_string()),
             runs_on: Some(OneOrManyOrObject::Single("ubuntu-latest".to_string())),
             ..Default::default()
         }
@@ -278,11 +272,6 @@ impl Job {
 
     pub fn runs_on<T: SetEnv<Self>>(self, a: T) -> Self {
         a.apply(self)
-    }
-
-    pub fn timeout(mut self, duration: Duration) -> Self {
-        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
-        self
     }
 
     pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
@@ -379,17 +368,12 @@ pub struct Step<T> {
 
 impl<T> Step<T> {
     pub fn name<S: ToString>(mut self, name: S) -> Self {
-        self.name = Some(name.to_string().to_case(Case::Title));
+        self.name = Some(name.to_string());
         self
     }
 
     pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
         env.apply(self)
-    }
-
-    pub fn timeout(mut self, duration: Duration) -> Self {
-        self.timeout_minutes = Some(duration.as_secs() as u32 / 60);
-        self
     }
 }
 
@@ -418,12 +402,9 @@ impl Step<Run> {
             params
                 .iter()
                 .map(|a| a.to_string())
-                .fold("".to_string(), |mut a, b| {
-                    a.push_str(&b);
-                    a
-                })
+                .reduce(|a, b| { format!("{} {}", a, b) })
+                .unwrap_or_default()
         ))
-        .name(format!("Cargo {}", cmd.to_string()).to_case(Case::Title))
     }
 
     pub fn cargo_nightly<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
