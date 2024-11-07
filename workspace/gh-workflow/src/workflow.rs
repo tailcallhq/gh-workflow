@@ -1,3 +1,5 @@
+#![allow(clippy::needless_update)]
+
 use std::fmt::Display;
 use std::path::Path;
 
@@ -133,27 +135,28 @@ impl Workflow {
 }
 
 // TODO: inline this conversion in actual usage
-impl Into<OneOrManyOrObject<String>> for &str {
-    fn into(self) -> OneOrManyOrObject<String> {
-        OneOrManyOrObject::Single(self.to_string())
+impl From<&str> for OneOrManyOrObject<String> {
+    fn from(value: &str) -> Self {
+        OneOrManyOrObject::Single(value.to_string())
     }
 }
 
 // TODO: inline this conversion in actual usage
-impl Into<OneOrManyOrObject<String>> for Vec<&str> {
-    fn into(self) -> OneOrManyOrObject<String> {
-        OneOrManyOrObject::Multiple(self.into_iter().map(|s| s.to_string()).collect())
+impl From<Vec<&str>> for OneOrManyOrObject<String> {
+    fn from(value: Vec<&str>) -> Self {
+        OneOrManyOrObject::Multiple(value.iter().map(|s| s.to_string()).collect())
     }
 }
 
 // TODO: inline this conversion in actual usage
-impl<V: Into<OneOrManyOrObject<String>>> Into<OneOrManyOrObject<String>> for Vec<(&str, V)> {
-    fn into(self) -> OneOrManyOrObject<String> {
-        let mut map = IndexMap::new();
-        for (key, value) in self {
-            map.insert(key.to_string(), value.into());
-        }
-        OneOrManyOrObject::KeyValue(map)
+impl<V: Into<OneOrManyOrObject<String>>> From<Vec<(&str, V)>> for OneOrManyOrObject<String> {
+    fn from(value: Vec<(&str, V)>) -> Self {
+        OneOrManyOrObject::KeyValue(
+            value
+                .into_iter()
+                .map(|(s, v)| (s.to_string(), v.into()))
+                .collect(),
+        )
     }
 }
 
@@ -419,7 +422,7 @@ impl Step<Use> {
                 "{}/{}@v{}",
                 owner.to_string(),
                 repo.to_string(),
-                version.to_string()
+                version
             )),
             ..Default::default()
         }
@@ -465,41 +468,41 @@ impl<S1: Display, S2: Display> SetEnv<Job> for (S1, S2) {
     }
 }
 
-impl Into<Step<AnyStep>> for Step<Use> {
-    fn into(self) -> Step<AnyStep> {
+impl From<Step<Use>> for Step<AnyStep> {
+    fn from(value: Step<Use>) -> Self {
         Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
-            uses: self.uses,
-            with: self.with,
-            run: self.run,
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
+            id: value.id,
+            name: value.name,
+            if_condition: value.if_condition,
+            uses: value.uses,
+            with: value.with,
+            run: value.run,
+            env: value.env,
+            timeout_minutes: value.timeout_minutes,
+            continue_on_error: value.continue_on_error,
+            working_directory: value.working_directory,
+            retry: value.retry,
+            artifacts: value.artifacts,
             marker: Default::default(),
         }
     }
 }
 
-impl Into<Step<AnyStep>> for Step<Run> {
-    fn into(self) -> Step<AnyStep> {
+impl From<Step<Run>> for Step<AnyStep> {
+    fn from(value: Step<Run>) -> Self {
         Step {
-            id: self.id,
-            name: self.name,
-            if_condition: self.if_condition,
-            uses: self.uses,
-            with: self.with,
-            run: self.run,
-            env: self.env,
-            timeout_minutes: self.timeout_minutes,
-            continue_on_error: self.continue_on_error,
-            working_directory: self.working_directory,
-            retry: self.retry,
-            artifacts: self.artifacts,
+            id: value.id,
+            name: value.name,
+            if_condition: value.if_condition,
+            uses: value.uses,
+            with: value.with,
+            run: value.run,
+            env: value.env,
+            timeout_minutes: value.timeout_minutes,
+            continue_on_error: value.continue_on_error,
+            working_directory: value.working_directory,
+            retry: value.retry,
+            artifacts: value.artifacts,
             marker: Default::default(),
         }
     }

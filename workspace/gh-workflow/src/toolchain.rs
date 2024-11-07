@@ -181,9 +181,9 @@ impl AddStep for ToolchainStep {
         if let Some(target) = self.target {
             let target = format!(
                 "{}-{}-{}{}",
-                target.arch.to_string(),
-                target.vendor.to_string(),
-                target.system.to_string(),
+                target.arch,
+                target.vendor,
+                target.system,
                 target.abi.map(|v| v.to_string()).unwrap_or_default(),
             );
 
