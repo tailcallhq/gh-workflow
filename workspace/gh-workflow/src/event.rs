@@ -1,9 +1,10 @@
 use std::fmt::{Display, Formatter};
+
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::Serialize;
-use crate::is_default;
-use crate::SetEvent;
+
+use crate::{is_default, SetEvent};
 
 #[derive(Serialize, Setters, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -650,7 +651,6 @@ pub struct CheckRun {
 pub struct CheckSuite {
     types: Vec<CheckSuiteEvent>,
 }
-
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
