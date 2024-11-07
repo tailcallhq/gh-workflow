@@ -1,4 +1,5 @@
 use std::path::Path;
+
 use crate::error::Error;
 
 pub fn validate<P: AsRef<Path>>(cur: &str, prev: P) -> Result<(), Error> {
