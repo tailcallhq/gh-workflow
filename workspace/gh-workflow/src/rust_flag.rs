@@ -53,12 +53,12 @@ impl Display for RustFlags {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             RustFlags::Lint(name, lint) => match lint {
-                Lint::Allow => write!(f, "-A {}", name),
-                Lint::Warn => write!(f, "-W {}", name),
-                Lint::Deny => write!(f, "-D {}", name),
-                Lint::Forbid => write!(f, "-F {}", name),
-                Lint::Codegen => write!(f, "-C {}", name),
-                Lint::Experiment => write!(f, "-Z {}", name),
+                Lint::Allow => write!(f, "-A{}", name),
+                Lint::Warn => write!(f, "-W{}", name),
+                Lint::Deny => write!(f, "-D{}", name),
+                Lint::Forbid => write!(f, "-F{}", name),
+                Lint::Codegen => write!(f, "-C{}", name),
+                Lint::Experiment => write!(f, "-Z{}", name),
             },
             RustFlags::Combine(lhs, rhs) => write!(f, "{} {}", lhs, rhs),
         }

@@ -29,7 +29,7 @@ impl Toolchain {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Component {
     Clippy,
     Rustfmt,
@@ -172,7 +172,7 @@ impl AddStep for ToolchainStep {
                     format!("{}.{}.{}", major, minor, patch)
                 }
             })
-            .reduce(|acc, a| format!("{},{}", acc, a));
+            .reduce(|acc, a| format!("{}, {}", acc, a));
 
         if let Some(toolchain) = toolchain {
             step = step.with(("toolchain", toolchain));
@@ -195,7 +195,8 @@ impl AddStep for ToolchainStep {
                 .components
                 .iter()
                 .map(|c| c.to_string())
-                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
+                .reduce(|acc, a| format!("{}, {}", acc, a))
+                .unwrap_or_default();
 
             step = step.with(("components", components));
         }

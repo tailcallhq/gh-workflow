@@ -1,4 +1,4 @@
-use gh_workflow::{Job, Permissions, RustFlags, Step, Toolchain, Workflow};
+use gh_workflow::{Component, Job, Permissions, RustFlags, Step, Toolchain, Workflow};
 
 fn main() {
     let rust_flags = RustFlags::deny("Warnings");
@@ -8,7 +8,8 @@ fn main() {
         .add_step(
             Step::setup_rust()
                 .add_toolchain(Toolchain::Stable)
-                .add_toolchain(Toolchain::Nightly),
+                .add_toolchain(Toolchain::Nightly)
+                .components(vec![Component::Clippy, Component::Rustfmt]),
         )
         .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]))
         .add_step(Step::cargo_nightly("fmt", vec!["--check"]))
