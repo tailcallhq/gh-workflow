@@ -374,6 +374,7 @@ pub struct Step<T> {
     pub artifacts: Option<Artifacts>,
 
     #[serde(skip)]
+    #[setters(skip)]
     marker: std::marker::PhantomData<T>,
 }
 
@@ -466,10 +467,10 @@ impl SetInput for IndexMap<String, Value> {
     }
 }
 
-impl<S1: Display, S2: Display> SetInput for (S1, S2) {
+impl<S1: AsRef<str>, S2: AsRef<str>> SetInput for (S1, S2) {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
         let mut with = step.with.unwrap_or_default();
-        with.insert(self.0.to_string(), Value::String(self.1.to_string()));
+        with.insert(self.0.as_ref().to_string(), Value::String(self.1.as_ref().to_string()));
         step.with = Some(with);
         step
     }

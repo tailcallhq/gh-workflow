@@ -1,10 +1,10 @@
 //! The typed version of https://github.com/actions-rust-lang/setup-rust-toolchain
 
 use std::fmt::{Display, Formatter};
-
+use std::time::Duration;
 use derive_setters::Setters;
-
-use crate::{AddStep, Job, RustFlags, Step};
+use indexmap::IndexMap;
+use crate::{AddStep, AnyStep, Expression, RustFlags, Step};
 
 #[derive(Clone)]
 pub enum Toolchain {
@@ -36,44 +36,7 @@ pub enum Component {
     RustDoc,
 }
 
-#[derive(Clone)]
-pub enum Arch {
-    X86_64,
-    Aarch64,
-    Arm,
-}
-
-#[derive(Clone)]
-pub enum Vendor {
-    Unknown,
-    Apple,
-    PC,
-}
-
-#[derive(Clone)]
-pub enum System {
-    Unknown,
-    Windows,
-    Linux,
-    Darwin,
-}
-
-#[derive(Clone)]
-pub enum Abi {
-    Unknown,
-    Gnu,
-    Msvc,
-    Musl,
-}
-
-#[derive(Clone, Setters)]
-pub struct Target {
-    arch: Arch,
-    vendor: Vendor,
-    system: System,
-    abi: Option<Abi>,
-}
-
+// TODO: Setup correct optionals
 /// A Rust representation for the inputs of the setup-rust action.
 /// More information can be found [here](https://github.com/actions-rust-lang/setup-rust-toolchain/blob/main/action.yml).
 /// NOTE: The public API should be close to the original action as much as possible.
@@ -81,16 +44,16 @@ pub struct Target {
 #[setters(strip_option)]
 pub struct ToolchainStep {
     pub toolchain: Vec<Toolchain>,
-    pub target: Option<Target>,
+    pub target: Option<String>,
     pub components: Vec<Component>,
-    pub cache: Option<bool>,
+    pub cache: bool,
     pub cache_directories: Vec<String>,
     pub cache_workspaces: Vec<String>,
-    pub cache_on_failure: Option<bool>,
+    pub cache_on_failure: bool,
     pub cache_key: Option<String>,
-    pub matcher: Option<bool>,
+    pub matcher: bool,
     pub rust_flags: Option<RustFlags>,
-    pub override_default: Option<bool>,
+    pub override_setup: bool,
 }
 
 impl ToolchainStep {
@@ -101,114 +64,62 @@ impl ToolchainStep {
 }
 
 impl AddStep for ToolchainStep {
-    fn apply(self, job: Job) -> Job {
-        let mut step = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
+    fn apply(self, job: crate::Job) -> crate::Job {
+        let mut steps = vec![];
+        steps.push(AnyStep::Use(Step::checkout()));
 
-        if !self.toolchain.is_empty() {
-            let toolchain = self
-                .toolchain
-                .iter()
-                .map(|t| match t {
-                    Toolchain::Stable => "stable".to_string(),
-                    Toolchain::Nightly => "nightly".to_string(),
-                    Toolchain::Custom((major, minor, patch)) => {
-                        format!("{}.{}.{}", major, minor, patch)
-                    }
-                })
-                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
-
-            step = step.with(("toolchain", toolchain));
+        if self.override_setup {
+            let mut setup = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
+            setup = setup.with(IndexMap::new());
+            steps.push(AnyStep::Use(setup));
         }
+
+        if self.matcher {
+            let matcher = Step::run(
+                // TODO: needs check
+                r#"echo "::add-matcher::${{ github.workspace }}/rust-error-matcher.json""#
+            )
+                .name("Add Rust Error Matcher");
+            steps.push(AnyStep::Run(matcher));
+        }
+
+        let mut rust = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
+
+        // TODO: impl for vec![(.., ..)]
+        let mut map = IndexMap::new();
+        map.insert(
+            "toolchain".to_string(),
+            serde_json::Value::String(self.toolchain.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(", ")),
+        );
+        rust = rust.with(map);
+
+        steps.push(AnyStep::Use(rust));
+
+        let mut command = vec![];
+        if let Some(rust_flags) = self.rust_flags {
+            command.push("RUSTFLAGS=".to_string() + &rust_flags.to_string());
+        }
+
+        command.extend(vec!["cargo", "test", "--all-features", "--workspace"].into_iter().map(|v| v.to_string()).collect::<Vec<_>>());
 
         if let Some(target) = self.target {
-            let target = format!(
-                "{}-{}-{}{}",
-                match target.arch {
-                    Arch::X86_64 => "x86_64",
-                    Arch::Aarch64 => "aarch64",
-                    Arch::Arm => "arm",
-                },
-                match target.vendor {
-                    Vendor::Unknown => "unknown",
-                    Vendor::Apple => "apple",
-                    Vendor::PC => "pc",
-                },
-                match target.system {
-                    System::Unknown => "unknown",
-                    System::Windows => "windows",
-                    System::Linux => "linux",
-                    System::Darwin => "darwin",
-                },
-                match target.abi {
-                    Some(abi) => match abi {
-                        Abi::Unknown => "unknown",
-                        Abi::Gnu => "gnu",
-                        Abi::Msvc => "msvc",
-                        Abi::Musl => "musl",
-                    },
-                    None => "",
-                }
-            );
-
-            step = step.with(("target", target));
+            command.push("--target".to_string());
+            command.push(target);
         }
 
-        if !self.components.is_empty() {
-            let components = self
-                .components
-                .iter()
-                .map(|c| match c {
-                    Component::Clippy => "clippy".to_string(),
-                    Component::Rustfmt => "rustfmt".to_string(),
-                    Component::RustDoc => "rust-doc".to_string(),
-                })
-                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
+        let test = Step::run(command.join(" "))
+            .name("Run Tests")
+            .timeout(Duration::from_secs(10)); // TODO: Add timeout to ToolchainStep
+        steps.push(AnyStep::Run(test));
 
-            step = step.with(("components", components));
+        if self.matcher {
+            let mut matcher = Step::run(
+                r#"echo "::remove-matcher owner=rust-error""#
+            ).name("Remove Rust Error Matcher");
+            matcher.if_condition = Some(Expression::new("always()"));
+            steps.push(AnyStep::Run(matcher));
         }
 
-        if let Some(cache) = self.cache {
-            step = step.with(("cache", cache));
-        }
-
-        if !self.cache_directories.is_empty() {
-            let cache_directories = self
-                .cache_directories
-                .iter()
-                .fold("".to_string(), |acc, a| format!("{}\n{}", acc, a));
-
-            step = step.with(("cache-directories", cache_directories));
-        }
-
-        if !self.cache_workspaces.is_empty() {
-            let cache_workspaces = self
-                .cache_workspaces
-                .iter()
-                .fold("".to_string(), |acc, a| format!("{}\n{}", acc, a));
-
-            step = step.with(("cache-workspaces", cache_workspaces));
-        }
-
-        if let Some(cache_on_failure) = self.cache_on_failure {
-            step = step.with(("cache-on-failure", cache_on_failure));
-        }
-
-        if let Some(cache_key) = self.cache_key {
-            step = step.with(("cache-key", cache_key));
-        }
-
-        if let Some(matcher) = self.matcher {
-            step = step.with(("matcher", matcher));
-        }
-
-        if let Some(rust_flags) = self.rust_flags {
-            step = step.with(("rust-flags", rust_flags.to_string()));
-        }
-
-        if let Some(override_default) = self.override_default {
-            step = step.with(("override", override_default));
-        }
-
-        job.add_step(step)
+        job
     }
 }

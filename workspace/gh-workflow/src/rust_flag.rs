@@ -1,5 +1,6 @@
 //! A type-safe representation of the Rust toolchain.
 
+use std::fmt;
 use std::fmt::{Display, Formatter};
 
 use crate::{Job, SetEnv, Step, Workflow};
@@ -50,7 +51,7 @@ impl RustFlags {
 }
 
 impl Display for RustFlags {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             RustFlags::Lint(name, lint) => match lint {
                 Lint::Allow => write!(f, "-A {}", name),
@@ -89,5 +90,33 @@ impl<T> SetEnv<Step<T>> for RustFlags {
         env.insert("RUSTFLAGS".to_string(), self.to_string());
         value.env = Some(env);
         value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+
+    #[test]
+    fn test_rust_flags() {
+        let rust_flags = RustFlags::allow("Warnings");
+        assert_eq!(rust_flags.to_string(), "-AWarnings");
+
+        let rust_flags = RustFlags::warn("Warnings");
+        assert_eq!(rust_flags.to_string(), "-WWarnings");
+
+        let rust_flags = RustFlags::deny("Warnings");
+        assert_eq!(rust_flags.to_string(), "-DWarnings");
+
+        let rust_flags = RustFlags::forbid("Warnings");
+        assert_eq!(rust_flags.to_string(), "-FWarnings");
+
+        let rust_flags = RustFlags::codegen("Warnings");
+        assert_eq!(rust_flags.to_string(), "-CWarnings");
+
+        let rust_flags = RustFlags::allow("Warnings") + RustFlags::warn("Warnings");
+        assert_eq!(rust_flags.to_string(), "-AWarnings -WWarnings");
     }
 }
