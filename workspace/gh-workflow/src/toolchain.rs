@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 use derive_setters::Setters;
 
-use crate::{AddStep, RustFlags};
+use crate::{AddStep, Job, RustFlags, Step};
 
 #[derive(Clone)]
 pub enum Toolchain {
@@ -36,7 +36,44 @@ pub enum Component {
     RustDoc,
 }
 
-// TODO: Setup correct optionals
+#[derive(Clone)]
+pub enum Arch {
+    X86_64,
+    Aarch64,
+    Arm,
+}
+
+#[derive(Clone)]
+pub enum Vendor {
+    Unknown,
+    Apple,
+    PC,
+}
+
+#[derive(Clone)]
+pub enum System {
+    Unknown,
+    Windows,
+    Linux,
+    Darwin,
+}
+
+#[derive(Clone)]
+pub enum Abi {
+    Unknown,
+    Gnu,
+    Msvc,
+    Musl,
+}
+
+#[derive(Clone, Setters)]
+pub struct Target {
+    arch: Arch,
+    vendor: Vendor,
+    system: System,
+    abi: Option<Abi>,
+}
+
 /// A Rust representation for the inputs of the setup-rust action.
 /// More information can be found [here](https://github.com/actions-rust-lang/setup-rust-toolchain/blob/main/action.yml).
 /// NOTE: The public API should be close to the original action as much as possible.
@@ -44,16 +81,16 @@ pub enum Component {
 #[setters(strip_option)]
 pub struct ToolchainStep {
     pub toolchain: Vec<Toolchain>,
-    pub target: Option<String>,
+    pub target: Option<Target>,
     pub components: Vec<Component>,
-    pub cache: bool,
+    pub cache: Option<bool>,
     pub cache_directories: Vec<String>,
     pub cache_workspaces: Vec<String>,
-    pub cache_on_failure: bool,
+    pub cache_on_failure: Option<bool>,
     pub cache_key: Option<String>,
-    pub matcher: bool,
+    pub matcher: Option<bool>,
     pub rust_flags: Option<RustFlags>,
-    pub override_setup: bool,
+    pub override_default: Option<bool>,
 }
 
 impl ToolchainStep {
@@ -64,7 +101,114 @@ impl ToolchainStep {
 }
 
 impl AddStep for ToolchainStep {
-    fn apply(self, job: crate::Job) -> crate::Job {
-        todo!()
+    fn apply(self, job: Job) -> Job {
+        let mut step = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
+
+        if !self.toolchain.is_empty() {
+            let toolchain = self
+                .toolchain
+                .iter()
+                .map(|t| match t {
+                    Toolchain::Stable => "stable".to_string(),
+                    Toolchain::Nightly => "nightly".to_string(),
+                    Toolchain::Custom((major, minor, patch)) => {
+                        format!("{}.{}.{}", major, minor, patch)
+                    }
+                })
+                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
+
+            step = step.with(("toolchain", toolchain));
+        }
+
+        if let Some(target) = self.target {
+            let target = format!(
+                "{}-{}-{}{}",
+                match target.arch {
+                    Arch::X86_64 => "x86_64",
+                    Arch::Aarch64 => "aarch64",
+                    Arch::Arm => "arm",
+                },
+                match target.vendor {
+                    Vendor::Unknown => "unknown",
+                    Vendor::Apple => "apple",
+                    Vendor::PC => "pc",
+                },
+                match target.system {
+                    System::Unknown => "unknown",
+                    System::Windows => "windows",
+                    System::Linux => "linux",
+                    System::Darwin => "darwin",
+                },
+                match target.abi {
+                    Some(abi) => match abi {
+                        Abi::Unknown => "unknown",
+                        Abi::Gnu => "gnu",
+                        Abi::Msvc => "msvc",
+                        Abi::Musl => "musl",
+                    },
+                    None => "",
+                }
+            );
+
+            step = step.with(("target", target));
+        }
+
+        if !self.components.is_empty() {
+            let components = self
+                .components
+                .iter()
+                .map(|c| match c {
+                    Component::Clippy => "clippy".to_string(),
+                    Component::Rustfmt => "rustfmt".to_string(),
+                    Component::RustDoc => "rust-doc".to_string(),
+                })
+                .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
+
+            step = step.with(("components", components));
+        }
+
+        if let Some(cache) = self.cache {
+            step = step.with(("cache", cache));
+        }
+
+        if !self.cache_directories.is_empty() {
+            let cache_directories = self
+                .cache_directories
+                .iter()
+                .fold("".to_string(), |acc, a| format!("{}\n{}", acc, a));
+
+            step = step.with(("cache-directories", cache_directories));
+        }
+
+        if !self.cache_workspaces.is_empty() {
+            let cache_workspaces = self
+                .cache_workspaces
+                .iter()
+                .fold("".to_string(), |acc, a| format!("{}\n{}", acc, a));
+
+            step = step.with(("cache-workspaces", cache_workspaces));
+        }
+
+        if let Some(cache_on_failure) = self.cache_on_failure {
+            step = step.with(("cache-on-failure", cache_on_failure));
+        }
+
+        if let Some(cache_key) = self.cache_key {
+            step = step.with(("cache-key", cache_key));
+        }
+
+        if let Some(matcher) = self.matcher {
+            step = step.with(("matcher", matcher));
+        }
+
+        if let Some(rust_flags) = self.rust_flags {
+            step = step.with(("rust-flags", rust_flags.to_string()));
+        }
+
+        if let Some(override_default) = self.override_default {
+            step = step.with(("override", override_default));
+        }
+
+        job.add_step(step)
     }
 }
