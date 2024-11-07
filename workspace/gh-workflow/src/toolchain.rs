@@ -36,6 +36,17 @@ pub enum Component {
     RustDoc,
 }
 
+impl Display for Component {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let val = match self {
+            Component::Clippy => "clippy",
+            Component::Rustfmt => "rustfmt",
+            Component::RustDoc => "rust-doc",
+        };
+        write!(f, "{}", val)
+    }
+}
+
 #[derive(Clone)]
 pub enum Arch {
     X86_64,
@@ -43,11 +54,33 @@ pub enum Arch {
     Arm,
 }
 
+impl Display for Arch {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let val = match self {
+            Arch::X86_64 => "x86_64",
+            Arch::Aarch64 => "aarch64",
+            Arch::Arm => "arm",
+        };
+        write!(f, "{}", val)
+    }
+}
+
 #[derive(Clone)]
 pub enum Vendor {
     Unknown,
     Apple,
     PC,
+}
+
+impl Display for Vendor {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let val = match self {
+            Vendor::Unknown => "unknown",
+            Vendor::Apple => "apple",
+            Vendor::PC => "pc",
+        };
+        write!(f, "{}", val)
+    }
 }
 
 #[derive(Clone)]
@@ -58,12 +91,36 @@ pub enum System {
     Darwin,
 }
 
+impl Display for System {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let val = match self {
+            System::Unknown => "unknown",
+            System::Windows => "windows",
+            System::Linux => "linux",
+            System::Darwin => "darwin",
+        };
+        write!(f, "{}", val)
+    }
+}
+
 #[derive(Clone)]
 pub enum Abi {
     Unknown,
     Gnu,
     Msvc,
     Musl,
+}
+
+impl Display for Abi {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let val = match self {
+            Abi::Unknown => "unknown",
+            Abi::Gnu => "gnu",
+            Abi::Msvc => "msvc",
+            Abi::Musl => "musl",
+        };
+        write!(f, "{}", val)
+    }
 }
 
 #[derive(Clone, Setters)]
@@ -124,31 +181,10 @@ impl AddStep for ToolchainStep {
         if let Some(target) = self.target {
             let target = format!(
                 "{}-{}-{}{}",
-                match target.arch {
-                    Arch::X86_64 => "x86_64",
-                    Arch::Aarch64 => "aarch64",
-                    Arch::Arm => "arm",
-                },
-                match target.vendor {
-                    Vendor::Unknown => "unknown",
-                    Vendor::Apple => "apple",
-                    Vendor::PC => "pc",
-                },
-                match target.system {
-                    System::Unknown => "unknown",
-                    System::Windows => "windows",
-                    System::Linux => "linux",
-                    System::Darwin => "darwin",
-                },
-                match target.abi {
-                    Some(abi) => match abi {
-                        Abi::Unknown => "unknown",
-                        Abi::Gnu => "gnu",
-                        Abi::Msvc => "msvc",
-                        Abi::Musl => "musl",
-                    },
-                    None => "",
-                }
+                target.arch.to_string(),
+                target.vendor.to_string(),
+                target.system.to_string(),
+                target.abi.map(|v| v.to_string()).unwrap_or_default(),
             );
 
             step = step.with(("target", target));
@@ -158,11 +194,7 @@ impl AddStep for ToolchainStep {
             let components = self
                 .components
                 .iter()
-                .map(|c| match c {
-                    Component::Clippy => "clippy".to_string(),
-                    Component::Rustfmt => "rustfmt".to_string(),
-                    Component::RustDoc => "rust-doc".to_string(),
-                })
+                .map(|c| c.to_string())
                 .fold("".to_string(), |acc, a| format!("{},{}", acc, a));
 
             step = step.with(("components", components));
