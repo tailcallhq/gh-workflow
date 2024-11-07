@@ -314,7 +314,7 @@ pub enum OneOrMany<T> {
     Multiple(Vec<T>),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AnyStep {
     Run(Step<Run>),
     Use(Step<Use>),
