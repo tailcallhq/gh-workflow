@@ -1,4 +1,7 @@
-use gh_workflow::{CargoCommand, Component, Event, Job, Permissions, PullRequest, Push, RustFlags, Step, Toolchain, Workflow};
+use gh_workflow::{
+    CargoCommand, Component, Event, Job, Permissions, PullRequest, Push, RustFlags, Step,
+    Toolchain, Workflow,
+};
 
 fn main() {
     let rust_flags = RustFlags::deny("warnings");
@@ -11,7 +14,10 @@ fn main() {
                 .add_toolchain(Toolchain::Nightly)
                 .components(vec![Component::Clippy, Component::Rustfmt]),
         )
-        .add_step(Step::cargo(CargoCommand::Test, vec!["--all-features", "--workspace"]))
+        .add_step(Step::cargo(
+            CargoCommand::Test,
+            vec!["--all-features", "--workspace"],
+        ))
         .add_step(Step::cargo_nightly(CargoCommand::Fmt, vec!["--check"]))
         .add_step(Step::cargo_nightly(
             CargoCommand::Clippy,
