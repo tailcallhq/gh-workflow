@@ -1,7 +1,7 @@
 use gh_workflow::{Component, Job, Permissions, RustFlags, Step, Toolchain, Workflow};
 
 fn main() {
-    let rust_flags = RustFlags::deny("Warnings");
+    let rust_flags = RustFlags::deny("warnings");
 
     let build = Job::new("Build and Test")
         .add_step(Step::checkout())
