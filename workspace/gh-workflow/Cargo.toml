@@ -1,15 +1,22 @@
 [package]
 name = "gh-workflow"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
+
+description = "A type-safe GitHub Actions workflow generator"
+license = "Apache-2.0"
+documentation = "https://github.com/tailcallhq/rust-gh-workflows"
+homepage = "https://github.com/tailcallhq/rust-gh-workflows"
+repository = "https://github.com/tailcallhq/rust-gh-workflows"
 
 [dependencies]
 async-trait = "0.1.83"
 derive_more = { version = "1.0.0", features = ["from"] }
 derive_setters = "0.1.6"
 indexmap = { version = "2.6.0", features = ["serde"] }
+merge = "0.1.0"
 serde = { version = "1.0.210", features = ["derive"] }
-serde_json = { version = "1.0.128", features = ["preserve_order"] }
+serde_json = { version = "1.0.128" }
 serde_yaml = "0.9.34"
 strum_macros = "0.26.4"
 

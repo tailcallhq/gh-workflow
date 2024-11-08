@@ -15,14 +15,14 @@
 # ----------------------------- END WARNING -------------------------
 # -------------------------------------------------------------------
 
-name: CI
+name: Build and Test
 env:
   RUSTFLAGS: -Dwarnings
 on:
   push:
     branches:
     - main
-  pull_request:
+  pull_request_target:
     types:
     - opened
     - synchronize
@@ -38,10 +38,14 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - name: Setup Rust Toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable, nightly
         components: clippy, rustfmt
-    - run: cargo test --all-features --workspace
-    - run: cargo +nightly fmt --check
-    - run: cargo +nightly clippy --all-features --workspace -- -D warnings
+    - name: Cargo Test
+      run: cargo test --all-features --workspace
+    - name: Cargo Fmt
+      run: cargo +nightly fmt --check
+    - name: Cargo Clippy
+      run: cargo +nightly clippy --all-features --workspace -- -D warnings

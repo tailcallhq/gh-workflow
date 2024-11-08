@@ -52,6 +52,7 @@ pub enum Arch {
     X86_64,
     Aarch64,
     Arm,
+    Wasm32,
 }
 
 impl Display for Arch {
@@ -60,6 +61,7 @@ impl Display for Arch {
             Arch::X86_64 => "x86_64",
             Arch::Aarch64 => "aarch64",
             Arch::Arm => "arm",
+            Arch::Wasm32 => "wasm32",
         };
         write!(f, "{}", val)
     }
@@ -125,10 +127,10 @@ impl Display for Abi {
 
 #[derive(Clone, Setters)]
 pub struct Target {
-    arch: Arch,
-    vendor: Vendor,
-    system: System,
-    abi: Option<Abi>,
+    pub arch: Arch,
+    pub vendor: Vendor,
+    pub system: System,
+    pub abi: Option<Abi>,
 }
 
 /// A Rust representation for the inputs of the setup-rust action.
@@ -139,6 +141,7 @@ pub struct Target {
 #[setters(strip_option)]
 pub struct ToolchainStep {
     pub toolchain: Vec<Toolchain>,
+    #[setters(skip)]
     pub target: Option<Target>,
     pub components: Vec<Component>,
     pub cache: Option<bool>,
@@ -156,11 +159,42 @@ impl ToolchainStep {
         self.toolchain.push(version);
         self
     }
+
+    pub fn add_component(mut self, component: Component) -> Self {
+        self.components.push(component);
+        self
+    }
+
+    pub fn with_stable_toolchain(mut self) -> Self {
+        self.toolchain.push(Toolchain::Stable);
+        self
+    }
+
+    pub fn with_nightly_toolchain(mut self) -> Self {
+        self.toolchain.push(Toolchain::Nightly);
+        self
+    }
+
+    pub fn with_clippy(mut self) -> Self {
+        self.components.push(Component::Clippy);
+        self
+    }
+
+    pub fn with_fmt(mut self) -> Self {
+        self.components.push(Component::Rustfmt);
+        self
+    }
+
+    pub fn target(mut self, arch: Arch, vendor: Vendor, system: System, abi: Option<Abi>) -> Self {
+        self.target = Some(Target { arch, vendor, system, abi });
+        self
+    }
 }
 
 impl AddStep for ToolchainStep {
     fn apply(self, job: Job) -> Job {
-        let mut step = Step::uses("actions-rust-lang", "setup-rust-toolchain", 1);
+        let mut step =
+            Step::uses("actions-rust-lang", "setup-rust-toolchain", 1).name("Setup Rust Toolchain");
 
         let toolchain = self
             .toolchain

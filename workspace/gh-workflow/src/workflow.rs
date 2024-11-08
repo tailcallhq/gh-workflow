@@ -7,9 +7,9 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::generate::Generate;
-use crate::ToolchainStep;
+use crate::{Event, EventValue, RustFlags, ToolchainStep};
 
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -24,7 +24,7 @@ pub struct Workflow {
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
-    pub on: Option<Value>,
+    pub on: Option<EventValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
@@ -57,14 +57,11 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Result<Self> {
+    pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Self {
         let key = id.to_string();
-        if self.jobs.contains_key(&key) {
-            return Err(Error::JobIdAlreadyExists(key.as_str().to_string()));
-        }
 
         self.jobs.insert(key, job.into());
-        Ok(self)
+        self
     }
 
     pub fn parse(yml: &str) -> Result<Self> {
@@ -81,6 +78,45 @@ impl Workflow {
 
     pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
         env.apply(self)
+    }
+
+    pub fn setup_rust() -> Self {
+        let build_job = Job::new("Build and Test")
+            .add_step(Step::checkout())
+            .add_step(
+                Step::setup_rust()
+                    .with_stable_toolchain()
+                    .with_nightly_toolchain()
+                    .with_clippy()
+                    .with_fmt(),
+            )
+            // TODO: make it type-safe
+            .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]).name("Cargo Test"))
+            .add_step(Step::cargo_nightly("fmt", vec!["--check"]).name("Cargo Fmt"))
+            .add_step(
+                Step::cargo_nightly(
+                    "clippy",
+                    vec!["--all-features", "--workspace", "--", "-D warnings"],
+                )
+                .name("Cargo Clippy"),
+            );
+
+        let push_event = Event::push().branch("main");
+
+        let pr_event = Event::pull_request_target()
+            .open()
+            .synchronize()
+            .reopen()
+            .branch("main");
+
+        let rust_flags = RustFlags::deny("warnings");
+
+        Workflow::new("Build and Test")
+            .env(rust_flags)
+            .permissions(Permissions::read())
+            .on(push_event)
+            .on(pr_event)
+            .add_job("build", build_job)
     }
 }
 
@@ -275,6 +311,7 @@ pub struct Step<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub working_directory: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
@@ -293,6 +330,10 @@ impl<T> Step<T> {
 
     pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
         env.apply(self)
+    }
+    pub fn working_directory<S: ToString>(mut self, working_directory: S) -> Self {
+        self.working_directory = Some(working_directory.to_string());
+        self
     }
 }
 
