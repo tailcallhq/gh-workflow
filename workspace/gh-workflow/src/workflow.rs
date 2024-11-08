@@ -84,6 +84,8 @@ impl Workflow {
         let build_job = Job::new("Build and Test")
             .add_step(Step::checkout())
             .add_step(
+                // TODO: maybe ToolchainStep::default() should setup
+                // stable by default
                 Step::setup_rust()
                     .with_stable_toolchain()
                     .with_nightly_toolchain()
@@ -152,6 +154,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub outputs: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
@@ -181,6 +184,10 @@ impl Job {
             runs_on: Some(Value::from("ubuntu-latest")),
             ..Default::default()
         }
+    }
+
+    pub fn outputs<S: AddOutput>(self, output: S) -> Self {
+        output.apply(self)
     }
 
     pub fn add_step<S: AddStep>(self, step: S) -> Self {
@@ -317,14 +324,32 @@ impl Step<Run> {
     }
 }
 
+pub struct Version(String);
+
+impl From<&str> for Version {
+    fn from(value: &str) -> Self {
+        Version(value.to_string())
+    }
+}
+
+impl From<u32> for Version {
+    fn from(value: u32) -> Self {
+        Version(format!("v{}", value))
+    }
+}
+
 impl Step<Use> {
-    pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
+    pub fn uses<Owner: ToString, Repo: ToString, Ver: Into<Version>>(
+        owner: Owner,
+        repo: Repo,
+        version: Ver,
+    ) -> Self {
         Step {
             uses: Some(format!(
-                "{}/{}@v{}",
+                "{}/{}@{}",
                 owner.to_string(),
                 repo.to_string(),
-                version
+                version.into().0,
             )),
             ..Default::default()
         }
@@ -435,11 +460,34 @@ pub trait AddStep {
     fn apply(self, job: Job) -> Job;
 }
 
+pub trait AddOutput {
+    fn apply(self, job: Job) -> Job;
+}
+
+impl<S: ToString, S1: ToString> AddOutput for (S, S1) {
+    fn apply(self, mut job: Job) -> Job {
+        let mut outputs = job.outputs.unwrap_or_default();
+        outputs.insert(self.0.to_string(), self.1.to_string());
+
+        job.outputs = Some(outputs);
+        job
+    }
+}
+
 impl<S1: Display, S2: Display> SetEnv<Step<Use>> for (S1, S2) {
     fn apply(self, mut step: Step<Use>) -> Step<Use> {
-        let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
-        index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));
-        step.with = Some(index_map);
+        let mut index_map: IndexMap<String, String> = step.env.unwrap_or_default();
+        index_map.insert(self.0.to_string(), self.1.to_string());
+        step.env = Some(index_map);
+        step
+    }
+}
+
+impl<S1: Display, S2: Display> SetEnv<Step<Run>> for (S1, S2) {
+    fn apply(self, mut step: Step<Run>) -> Step<Run> {
+        let mut index_map: IndexMap<String, String> = step.env.unwrap_or_default();
+        index_map.insert(self.0.to_string(), self.1.to_string());
+        step.env = Some(index_map);
         step
     }
 }
