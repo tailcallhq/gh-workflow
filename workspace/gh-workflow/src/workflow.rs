@@ -1,7 +1,6 @@
 #![allow(clippy::needless_update)]
 
 use std::fmt::Display;
-use std::path::Path;
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
@@ -72,8 +71,8 @@ impl Workflow {
         Ok(serde_yaml::from_str(yml)?)
     }
 
-    pub fn generate<T: AsRef<Path>>(self, path: T) -> Result<()> {
-        Generate::new(self, path).generate()
+    pub fn generate(self) -> Result<()> {
+        Generate::new(self).generate()
     }
 
     pub fn on<T: SetEvent>(self, a: T) -> Self {
