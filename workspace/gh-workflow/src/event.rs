@@ -93,7 +93,8 @@ pub enum BranchEvent {
 pub enum CheckRunEvent {
     #[default]
     Created,
-    Rerequested,
+    #[serde(rename = "rerequested")]
+    ReRequested,
     Completed,
     RequestedAction,
 }
@@ -401,17 +402,11 @@ pub struct DiscussionComment {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct Fork {
-    // TODO: needs check
-    types: Vec<String>,
-}
+pub struct Fork;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct Gollum {
-    // TODO: needs check
-    types: Vec<String>,
-}
+pub struct Gollum;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -445,10 +440,7 @@ pub struct Milestone {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct PageBuild {
-    // TODO: needs review
-    types: Vec<String>,
-}
+pub struct PageBuild;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -500,16 +492,20 @@ pub struct Release {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct Status {
-    // TODO: needs review
-    types: Vec<String>,
-}
+pub struct Status;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Watch {
-    // TODO: needs review
-    types: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    types: Vec<WatchActivity>,
+}
+
+#[derive(Default, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum WatchActivity {
+    #[default]
+    Started,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
