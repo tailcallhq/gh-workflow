@@ -71,6 +71,7 @@ jobs:
       create_release_name: ${{ steps.set_output.outputs.create_release_name }}
       create_release_id: ${{ steps.set_output.outputs.create_release_id }}
   release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Create release
     runs-on: ubuntu-latest
     steps:
