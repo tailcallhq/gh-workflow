@@ -44,4 +44,4 @@ jobs:
         components: clippy, rustfmt
     - run: cargo test --all-features --workspace
     - run: cargo +nightly fmt --check
-    - run: cargo +nightly clippy --all-features --workspace
+    - run: cargo +nightly clippy --all-features --workspace -- -D warnings

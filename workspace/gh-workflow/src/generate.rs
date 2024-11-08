@@ -22,7 +22,7 @@ impl Generate {
 
         let root_dir = String::from_utf8(
             Command::new("git")
-                .args(&["rev-parse", "--show-toplevel"])
+                .args(["rev-parse", "--show-toplevel"])
                 .output()?
                 .stdout,
         )?;
