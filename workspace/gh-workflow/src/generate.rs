@@ -70,7 +70,7 @@ impl Generate {
                     .env(("CRATES_TOKEN", "${{ secrets.CRATES_TOKEN }}")),
             )
             .add_step(
-                Step::run(" flyctl deploy --remote-only")
+                Step::run("flyctl deploy --remote-only")
                     .env(("FLY_API_TOKEN", "${{ secrets.FLY_API_TOKEN }}")),
             );
 
