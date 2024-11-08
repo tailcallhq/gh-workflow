@@ -24,7 +24,7 @@ To use **Rust GitHub Workflows** in your project, add it to your `Cargo.toml`:
 
 ```toml
 [build-dependencies]
-rust-gh-workflows = "1"
+gh-workflow = "0.1"
 ```
 
 Then you can start creating GitHub Actions in your [build.rs](https://github.com/tailcallhq/rust-gh-workflows/blob/main/workspace/gh-workflow-gen/build.rs).
