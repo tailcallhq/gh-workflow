@@ -256,6 +256,7 @@ pub struct Step<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub working_directory: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
@@ -274,6 +275,10 @@ impl<T> Step<T> {
 
     pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
         env.apply(self)
+    }
+    pub fn working_directory<S: ToString>(mut self, working_directory: S) -> Self {
+        self.working_directory = Some(working_directory.to_string());
+        self
     }
 }
 
