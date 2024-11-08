@@ -34,12 +34,23 @@ impl Generate {
 
         let content = format!("{}\n{}", comment, self.workflow.to_string()?);
 
-        std::fs::write(path.clone(), content).map_err(Error::IO)?;
-
-        println!(
-            "Generated workflow file: {}",
-            path.canonicalize()?.display()
-        );
-        Ok(())
+        if std::env::var("CI").is_ok() {
+            if let Ok(prev) = std::fs::read_to_string(&path) {
+                if content != prev {
+                    Err(Error::OutdatedWorkflow)
+                } else {
+                    Ok(())
+                }
+            } else {
+                Err(Error::MissingWorkflowFile(path.clone()))
+            }
+        } else {
+            std::fs::write(path.clone(), content)?;
+            println!(
+                "Generated workflow file: {}",
+                path.canonicalize()?.display()
+            );
+            Ok(())
+        }
     }
 }
