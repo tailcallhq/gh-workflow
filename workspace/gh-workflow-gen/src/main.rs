@@ -34,9 +34,6 @@ fn main() {
             ))
         .add_job("build", build)
         .unwrap()
-        .generate(format!(
-            "{}/../../.github/workflows/ci.yml",
-            env!("CARGO_MANIFEST_DIR")
-        ))
+        .generate()
         .unwrap();
 }

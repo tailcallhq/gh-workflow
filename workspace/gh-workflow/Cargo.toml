@@ -4,12 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-built = {version = "0.7.5", optional = true}
-
 async-trait = "0.1.83"
 derive_more = { version = "1.0.0", features = ["from"] }
 derive_setters = "0.1.6"
-indexmap = {version = "2.6.0", features = ["serde"]}
+indexmap = { version = "2.6.0", features = ["serde"] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128", features = ["preserve_order"] }
 serde_yaml = "0.9.34"
@@ -17,6 +15,3 @@ serde_yaml = "0.9.34"
 [dev-dependencies]
 insta = "1.40.0"
 pretty_assertions = "1.4.1"
-
-[features]
-validate = ["built"]
