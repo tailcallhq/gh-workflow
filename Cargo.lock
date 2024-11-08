@@ -136,8 +136,6 @@ name = "gh-workflow-gen"
 version = "0.1.0"
 dependencies = [
  "gh-workflow",
- "indexmap",
- "serde_json",
 ]
 
 [[package]]
