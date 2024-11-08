@@ -25,10 +25,10 @@ fn main() {
                         .add_toolchain(Toolchain::Nightly)
                         .components(vec![Component::Clippy, Component::Rustfmt]),
                 )
-                .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]))
-                .add_step(Step::cargo_nightly("fmt", vec!["--check"]))
+                .add_step(Step::cargo(Cargo::Test, vec!["--all-features", "--workspace"]))
+                .add_step(Step::cargo_nightly(Cargo::Fmt, vec!["--check"]))
                 .add_step(Step::cargo_nightly(
-                    "clippy",
+                    Cargo::Clippy,
                     vec!["--all-features", "--workspace", "--", "-D warnings"],
                 )),
         )
