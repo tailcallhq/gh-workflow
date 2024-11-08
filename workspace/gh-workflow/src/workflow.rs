@@ -242,13 +242,6 @@ impl<V: Into<RunsOn>> AddRunsOn for V {
     }
 }
 
-impl<T: Into<Value>> SetRunner for T {
-    fn apply(self, mut job: Job) -> Job {
-        job.runs_on = Some(RunsOn(self.into()));
-        job
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum AnyStep {
