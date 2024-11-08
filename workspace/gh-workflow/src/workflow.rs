@@ -68,8 +68,13 @@ impl Workflow {
         Ok(serde_yaml::from_str(yml)?)
     }
 
-    pub fn generate(self) -> Result<()> {
-        Generate::new(self).generate()
+    pub fn generate<S: ToString>(self, name: Option<S>) -> Result<()> {
+        let mut gen = Generate::new(self);
+        if let Some(name) = name {
+            gen = gen.name(name.to_string());
+        }
+        
+        gen.generate()
     }
 
     pub fn on<T: SetEvent>(self, a: T) -> Self {
