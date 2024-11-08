@@ -39,6 +39,10 @@ impl Generate {
                 if content != prev {
                     Err(Error::OutdatedWorkflow)
                 } else {
+                    println!(
+                        "Workflow file is up-to-date: {}",
+                        path.canonicalize()?.display()
+                    );
                     Ok(())
                 }
             } else {
