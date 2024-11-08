@@ -1,6 +1,7 @@
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::Serialize;
+use serde_json::Value;
 
 use crate::{is_default, SetEvent};
 
@@ -111,7 +112,7 @@ pub enum CheckSuiteEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum PullRequestEvent {
+pub enum PullRequestActivity {
     Assigned,
     Unassigned,
     Labeled,
@@ -335,14 +336,12 @@ pub struct Push {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct Public {
-    // TODO: needs review
-}
+pub struct Public;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequest {
-    types: Vec<PullRequestEvent>,
+    types: Vec<PullRequestActivity>,
     branches: Vec<String>,
 }
 
@@ -510,25 +509,12 @@ pub enum WatchActivity {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub struct WorkflowCall {
-    pub inputs: IndexMap<String, WorkflowInput>,
-}
-
-#[derive(Default, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub struct WorkflowInput {
-    // TODO: needs review
-    pub description: Option<String>,
-    pub deprecation_message: Option<String>,
-    pub required: Option<bool>,
-    pub input_type: String, // "boolean", "number", or "string"
-}
+pub struct WorkflowCall;
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowDispatch {
-    // TODO: needs review (this is probably incorrect)
-    pub inputs: IndexMap<String, WorkflowInput>,
+    pub inputs: IndexMap<String, Value>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -609,17 +595,17 @@ impl PullRequest {
     }
 
     pub fn open(mut self) -> Self {
-        self.types.push(PullRequestEvent::Opened);
+        self.types.push(PullRequestActivity::Opened);
         self
     }
 
     pub fn synchronize(mut self) -> Self {
-        self.types.push(PullRequestEvent::Synchronize);
+        self.types.push(PullRequestActivity::Synchronize);
         self
     }
 
     pub fn reopen(mut self) -> Self {
-        self.types.push(PullRequestEvent::Reopened);
+        self.types.push(PullRequestActivity::Reopened);
         self
     }
 }
