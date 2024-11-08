@@ -141,7 +141,7 @@ pub struct Job {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, strum_macros::Display)]
 #[serde(rename_all = "kebab-case")]
-pub enum CargoCommand {
+pub enum Cargo {
     Add,
     Bench,
     Build,
@@ -322,7 +322,7 @@ impl Step<Run> {
             .reduce(|a, b| format!("{} {}", a, b))
             .unwrap_or_default()
     }
-    fn cargo_command<P: ToString>(prefix: Option<&str>, cmd: CargoCommand, params: Vec<P>) -> Self {
+    fn cargo_command<P: ToString>(prefix: Option<&str>, cmd: Cargo, params: Vec<P>) -> Self {
         Step::run(format!(
             "cargo{} {} {}",
             prefix.map(|v| format!(" {}", v)).unwrap_or_default(),
@@ -331,11 +331,11 @@ impl Step<Run> {
         ))
     }
 
-    pub fn cargo<P: ToString>(cmd: CargoCommand, params: Vec<P>) -> Self {
+    pub fn cargo<P: ToString>(cmd: Cargo, params: Vec<P>) -> Self {
         Self::cargo_command(None, cmd, params)
     }
 
-    pub fn cargo_nightly<P: ToString>(cmd: CargoCommand, params: Vec<P>) -> Self {
+    pub fn cargo_nightly<P: ToString>(cmd: Cargo, params: Vec<P>) -> Self {
         Self::cargo_command(Some("+nightly"), cmd, params)
     }
 }

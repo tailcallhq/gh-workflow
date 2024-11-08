@@ -1,5 +1,5 @@
 use gh_workflow::{
-    CargoCommand, Component, Event, Job, Permissions, PullRequest, Push, RustFlags, Step,
+    Cargo, Component, Event, Job, Permissions, PullRequest, Push, RustFlags, Step,
     Toolchain, Workflow,
 };
 
@@ -15,12 +15,12 @@ fn main() {
                 .components(vec![Component::Clippy, Component::Rustfmt]),
         )
         .add_step(Step::cargo(
-            CargoCommand::Test,
+            Cargo::Test,
             vec!["--all-features", "--workspace"],
         ))
-        .add_step(Step::cargo_nightly(CargoCommand::Fmt, vec!["--check"]))
+        .add_step(Step::cargo_nightly(Cargo::Fmt, vec!["--check"]))
         .add_step(Step::cargo_nightly(
-            CargoCommand::Clippy,
+            Cargo::Clippy,
             vec!["--all-features", "--workspace"],
         ));
 
