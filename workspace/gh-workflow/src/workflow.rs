@@ -57,6 +57,74 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
+    pub fn autorelease_crate(self) -> Self {
+        let mut workflow = self;
+        let draft_release = Job::new("Draft release")
+            .if_condition(Expression::new(
+                "github.event_name == 'push' && github.ref == 'refs/heads/main'",
+            ))
+            .permissions(Permissions::write())
+            .add_step(Step::checkout())
+            .add_step(
+                Step::uses("release-drafter", "release-drafter", 6)
+                    .id("create_release".to_string())
+                    .env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
+                    .with(("config-name", "release-drafter.yml")),
+            )
+            .add_step(
+                Step::run(
+                    r#"echo "create_release_name=${{ steps.create_release.outputs.name }}" >> $GITHUB_OUTPUT && echo "create_release_id=${{ steps.create_release.outputs.id }}" >> $GITHUB_OUTPUT"#,
+                )
+                    .id("set_output".to_string())
+                    .name("Set Output for Later Jobs"),
+            )
+            .outputs((
+                "create_release_name",
+                "${{ steps.set_output.outputs.create_release_name }}",
+            ))
+            .outputs((
+                "create_release_id",
+                "${{ steps.set_output.outputs.create_release_id }}",
+            ));
+
+        let release_job = Job::new("Create release")
+            .add_step(Step::checkout())
+            .add_step(Step::setup_rust().with_stable_toolchain())
+            .add_step(Step::cargo("fetch", vec![""]))
+            .add_step(Step::uses(
+                "superfly",
+                "flyctl-actions/setup-flyctl",
+                "master",
+            ))
+            .add_step(
+                Step::run(
+                    r#"sed -i.bak "s/version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml"#,
+                )
+                .env((
+                    "NEW_VERSION",
+                    "${{ needs.draft_release.outputs.create_release_name }}",
+                )),
+            )
+            // TODO: Make .env(...) type safe
+            .add_step(
+                Step::run("echo $CRATES_TOKEN | cargo login")
+                    .env(("CRATES_TOKEN", "${{ secrets.CRATES_TOKEN }}")),
+            )
+            .add_step(
+                Step::cargo("publish", vec!["--token $CRATES_TOKEN"])
+                    .env(("CRATES_TOKEN", "${{ secrets.CRATES_TOKEN }}")),
+            )
+            .add_step(
+                Step::run("flyctl deploy --remote-only")
+                    .env(("FLY_API_TOKEN", "${{ secrets.FLY_API_TOKEN }}")),
+            );
+
+        workflow = workflow.add_job("draft_release", draft_release);
+        workflow = workflow.add_job("release", release_job);
+
+        workflow
+    }
+
     pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Self {
         let key = id.to_string();
 
