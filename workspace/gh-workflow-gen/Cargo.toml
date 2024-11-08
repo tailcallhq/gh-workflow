@@ -3,8 +3,6 @@ name = "gh-workflow-gen"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+[build-dependencies]
 
-serde_json = "1.0.132"
-indexmap = "2.6.0"
 gh-workflow = { path = "../gh-workflow" }

@@ -1,14 +1,14 @@
 # 🦀 [WIP] Rust GitHub Actions Workflows 🚀
 
-[![Rust](https://img.shields.io/badge/Language-Rust-blue.svg)](https://www.rust-lang.org)
-[![Build Status](https://github.com/tailcallhq/rust-gh-workflows/actions/workflows/ci.yml/badge.svg)](https://github.com/tailcallhq/rust-gh-workflows/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Crates.io](https://img.shields.io/crates/v/rust-gh-workflows)](https://crates.io/crates/rust-gh-workflows)
-[![Contributors](https://img.shields.io/github/contributors/tailcallhq/rust-gh-workflows)](https://github.com/tailcallhq/rust-gh-workflows/graphs/contributors)
-[![GitHub forks](https://img.shields.io/github/forks/tailcallhq/rust-gh-workflows)](https://github.com/tailcallhq/rust-gh-workflows/network/members)
-[![Stars](https://img.shields.io/github/stars/tailcallhq/rust-gh-workflows?style=social)](https://github.com/tailcallhq/rust-gh-workflows/stargazers)
-[![Issues](https://img.shields.io/github/issues/tailcallhq/rust-gh-workflows)](https://github.com/tailcallhq/rust-gh-workflows/issues)
-[![Discord](https://img.shields.io/discord/CHANNEL_ID.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/your-channel)
+[![Rust](https://img.shields.io/badge/Language-Rust-blue?style=flat-square)](https://www.rust-lang.org)
+[![Build Status](https://github.com/tailcallhq/rust-gh-workflows/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Crates.io](https://img.shields.io/crates/v/rust-gh-workflows?style=flat-square)](https://crates.io/crates/rust-gh-workflows)
+[![Contributors](https://img.shields.io/github/contributors/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/network/members)
+[![Stars](https://img.shields.io/github/stars/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/stargazers)
+[![Issues](https://img.shields.io/github/issues/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/issues)
+
 
 ## 🧑‍💻 What is Rust GitHub Workflows?
 
