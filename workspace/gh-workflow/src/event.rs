@@ -79,10 +79,9 @@ pub struct Event {
     pub repository_dispatch: Option<RepositoryDispatch>,
 }
 
-// TODO: rename event
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum BranchEvent {
+pub enum BranchActivity {
     Created,
     #[default]
     Edited,
@@ -91,7 +90,7 @@ pub enum BranchEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum CheckRunEvent {
+pub enum CheckRunActivity {
     #[default]
     Created,
     #[serde(rename = "rerequested")]
@@ -102,7 +101,7 @@ pub enum CheckRunEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum CheckSuiteEvent {
+pub enum CheckSuiteActivity {
     #[default]
     Completed,
     Requested,
@@ -139,7 +138,7 @@ pub enum PullRequestActivity {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum DiscussionEvent {
+pub enum DiscussionActivity {
     #[default]
     Created,
     Edited,
@@ -158,7 +157,7 @@ pub enum DiscussionEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum DiscussionCommentEvent {
+pub enum DiscussionCommentActivity {
     #[default]
     Created,
     Edited,
@@ -167,7 +166,7 @@ pub enum DiscussionCommentEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum IssueCommentEvent {
+pub enum IssueCommentActivity {
     #[default]
     Created,
     Edited,
@@ -175,7 +174,7 @@ pub enum IssueCommentEvent {
 }
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum IssuesEvent {
+pub enum IssuesActivity {
     #[default]
     Opened,
     Edited,
@@ -197,7 +196,7 @@ pub enum IssuesEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum LabelEvent {
+pub enum LabelActivity {
     #[default]
     Created,
     Edited,
@@ -206,14 +205,14 @@ pub enum LabelEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum MergeGroupEvent {
+pub enum MergeGroupActivity {
     #[default]
     ChecksRequested,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum MilestoneEvent {
+pub enum MilestoneActivity {
     #[default]
     Created,
     Closed,
@@ -224,7 +223,7 @@ pub enum MilestoneEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ProjectEvent {
+pub enum ProjectActivity {
     #[default]
     Created,
     Updated,
@@ -236,7 +235,7 @@ pub enum ProjectEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ProjectCardEvent {
+pub enum ProjectCardActivity {
     #[default]
     Created,
     Moved,
@@ -247,7 +246,7 @@ pub enum ProjectCardEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ProjectColumnEvent {
+pub enum ProjectColumnActivity {
     #[default]
     Created,
     Updated,
@@ -257,7 +256,7 @@ pub enum ProjectColumnEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum PullRequestReviewEvent {
+pub enum PullRequestReviewActivity {
     #[default]
     Submitted,
     Edited,
@@ -266,7 +265,7 @@ pub enum PullRequestReviewEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum PullRequestReviewCommentEvent {
+pub enum PullRequestReviewCommentActivity {
     #[default]
     Created,
     Edited,
@@ -275,7 +274,7 @@ pub enum PullRequestReviewCommentEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum PullRequestTargetEvent {
+pub enum PullRequestTargetActivity {
     #[default]
     Assigned,
     Unassigned,
@@ -300,7 +299,7 @@ pub enum PullRequestTargetEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum RegistryPackageEvent {
+pub enum RegistryPackageActivity {
     #[default]
     Published,
     Updated,
@@ -308,7 +307,7 @@ pub enum RegistryPackageEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ReleaseEvent {
+pub enum ReleaseActivity {
     #[default]
     Published,
     Unpublished,
@@ -321,7 +320,7 @@ pub enum ReleaseEvent {
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum WorkflowRunEvent {
+pub enum WorkflowRunActivity {
     #[default]
     Requested,
     Completed,
@@ -348,19 +347,19 @@ pub struct PullRequest {
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct BranchProtectionRule {
-    types: Vec<BranchEvent>,
+    types: Vec<BranchActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct CheckRun {
-    types: Vec<CheckRunEvent>,
+    types: Vec<CheckRunActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct CheckSuite {
-    types: Vec<CheckSuiteEvent>,
+    types: Vec<CheckSuiteActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -390,13 +389,13 @@ pub struct DeploymentStatus {
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Discussion {
-    types: Vec<DiscussionEvent>,
+    types: Vec<DiscussionActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct DiscussionComment {
-    types: Vec<DiscussionCommentEvent>,
+    types: Vec<DiscussionCommentActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -410,31 +409,31 @@ pub struct Gollum;
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct IssueComment {
-    types: Vec<IssueCommentEvent>,
+    types: Vec<IssueCommentActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Issues {
-    types: Vec<IssuesEvent>,
+    types: Vec<IssuesActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Label {
-    types: Vec<LabelEvent>,
+    types: Vec<LabelActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct MergeGroup {
-    types: Vec<MergeGroupEvent>,
+    types: Vec<MergeGroupActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Milestone {
-    types: Vec<MilestoneEvent>,
+    types: Vec<MilestoneActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -444,49 +443,49 @@ pub struct PageBuild;
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Project {
-    types: Vec<ProjectEvent>,
+    types: Vec<ProjectActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct ProjectCard {
-    types: Vec<ProjectCardEvent>,
+    types: Vec<ProjectCardActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct ProjectColumn {
-    types: Vec<ProjectColumnEvent>,
+    types: Vec<ProjectColumnActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestReview {
-    types: Vec<PullRequestReviewEvent>,
+    types: Vec<PullRequestReviewActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestReviewComment {
-    types: Vec<PullRequestReviewCommentEvent>,
+    types: Vec<PullRequestReviewCommentActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct PullRequestTarget {
-    types: Vec<PullRequestTargetEvent>,
+    types: Vec<PullRequestTargetActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct RegistryPackage {
-    types: Vec<RegistryPackageEvent>,
+    types: Vec<RegistryPackageActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Release {
-    types: Vec<ReleaseEvent>,
+    types: Vec<ReleaseActivity>,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -521,7 +520,7 @@ pub struct WorkflowDispatch {
 #[serde(rename_all = "snake_case")]
 pub struct WorkflowRun {
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    types: Vec<WorkflowRunEvent>,
+    types: Vec<WorkflowRunActivity>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     workflows: Vec<String>,
 }
