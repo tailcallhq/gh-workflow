@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter};
-
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use serde::Serialize;
@@ -100,47 +98,14 @@ pub enum CheckRunEvent {
     RequestedAction,
 }
 
-impl Display for CheckRunEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            CheckRunEvent::Created => "created",
-            CheckRunEvent::Rerequested => "rerequested",
-            CheckRunEvent::Completed => "completed",
-            CheckRunEvent::RequestedAction => "requested_action",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum CheckSuiteEvent {
     #[default]
     Completed,
     Requested,
-    Rerequested,
-}
-
-impl Display for CheckSuiteEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            CheckSuiteEvent::Completed => "completed",
-            CheckSuiteEvent::Requested => "requested",
-            CheckSuiteEvent::Rerequested => "rerequested",
-        };
-        write!(f, "{}", val)
-    }
-}
-
-impl Display for BranchEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            BranchEvent::Created => "created",
-            BranchEvent::Edited => "edited",
-            BranchEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
+    #[serde(rename = "rerequested")]
+    ReRequested,
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -170,35 +135,6 @@ pub enum PullRequestEvent {
     Dequeued,
 }
 
-impl Display for PullRequestEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            PullRequestEvent::Assigned => "assigned",
-            PullRequestEvent::Unassigned => "unassigned",
-            PullRequestEvent::Labeled => "labeled",
-            PullRequestEvent::Unlabeled => "unlabeled",
-            PullRequestEvent::Opened => "opened",
-            PullRequestEvent::Edited => "edited",
-            PullRequestEvent::Closed => "closed",
-            PullRequestEvent::Reopened => "reopened",
-            PullRequestEvent::Synchronize => "synchronize",
-            PullRequestEvent::ConvertedToDraft => "converted_to_draft",
-            PullRequestEvent::ReadyForReview => "ready_for_review",
-            PullRequestEvent::Locked => "locked",
-            PullRequestEvent::Unlocked => "unlocked",
-            PullRequestEvent::Milestoned => "milestoned",
-            PullRequestEvent::Demilestoned => "demilestoned",
-            PullRequestEvent::ReviewRequested => "review_requested",
-            PullRequestEvent::ReviewRequestRemoved => "review_request_removed",
-            PullRequestEvent::AutoMergeEnabled => "auto_merge_enabled",
-            PullRequestEvent::AutoMergeDisabled => "auto_merge_disabled",
-            PullRequestEvent::Enqueued => "enqueued",
-            PullRequestEvent::Dequeued => "dequeued",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum DiscussionEvent {
@@ -218,27 +154,6 @@ pub enum DiscussionEvent {
     Unanswered,
 }
 
-impl Display for DiscussionEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            DiscussionEvent::Created => "created",
-            DiscussionEvent::Edited => "edited",
-            DiscussionEvent::Deleted => "deleted",
-            DiscussionEvent::Transferred => "transferred",
-            DiscussionEvent::Pinned => "pinned",
-            DiscussionEvent::Unpinned => "unpinned",
-            DiscussionEvent::Labeled => "labeled",
-            DiscussionEvent::Unlabeled => "unlabeled",
-            DiscussionEvent::Locked => "locked",
-            DiscussionEvent::Unlocked => "unlocked",
-            DiscussionEvent::CategoryChanged => "category_changed",
-            DiscussionEvent::Answered => "answered",
-            DiscussionEvent::Unanswered => "unanswered",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum DiscussionCommentEvent {
@@ -246,17 +161,6 @@ pub enum DiscussionCommentEvent {
     Created,
     Edited,
     Deleted,
-}
-
-impl Display for DiscussionCommentEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            DiscussionCommentEvent::Created => "created",
-            DiscussionCommentEvent::Edited => "edited",
-            DiscussionCommentEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -267,18 +171,6 @@ pub enum IssueCommentEvent {
     Edited,
     Deleted,
 }
-
-impl Display for IssueCommentEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            IssueCommentEvent::Created => "created",
-            IssueCommentEvent::Edited => "edited",
-            IssueCommentEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum IssuesEvent {
@@ -301,30 +193,6 @@ pub enum IssuesEvent {
     Demilestoned,
 }
 
-impl Display for IssuesEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            IssuesEvent::Opened => "opened",
-            IssuesEvent::Edited => "edited",
-            IssuesEvent::Deleted => "deleted",
-            IssuesEvent::Transferred => "transferred",
-            IssuesEvent::Pinned => "pinned",
-            IssuesEvent::Unpinned => "unpinned",
-            IssuesEvent::Closed => "closed",
-            IssuesEvent::Reopened => "reopened",
-            IssuesEvent::Assigned => "assigned",
-            IssuesEvent::Unassigned => "unassigned",
-            IssuesEvent::Labeled => "labeled",
-            IssuesEvent::Unlabeled => "unlabeled",
-            IssuesEvent::Locked => "locked",
-            IssuesEvent::Unlocked => "unlocked",
-            IssuesEvent::Milestoned => "milestoned",
-            IssuesEvent::Demilestoned => "demilestoned",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum LabelEvent {
@@ -334,31 +202,11 @@ pub enum LabelEvent {
     Deleted,
 }
 
-impl Display for LabelEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            LabelEvent::Created => "created",
-            LabelEvent::Edited => "edited",
-            LabelEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MergeGroupEvent {
     #[default]
     ChecksRequested,
-}
-
-impl Display for MergeGroupEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            MergeGroupEvent::ChecksRequested => "checks_requested",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -370,19 +218,6 @@ pub enum MilestoneEvent {
     Opened,
     Edited,
     Deleted,
-}
-
-impl Display for MilestoneEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            MilestoneEvent::Created => "created",
-            MilestoneEvent::Closed => "closed",
-            MilestoneEvent::Opened => "opened",
-            MilestoneEvent::Edited => "edited",
-            MilestoneEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -397,20 +232,6 @@ pub enum ProjectEvent {
     Deleted,
 }
 
-impl Display for ProjectEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            ProjectEvent::Created => "created",
-            ProjectEvent::Updated => "updated",
-            ProjectEvent::Closed => "closed",
-            ProjectEvent::Reopened => "reopened",
-            ProjectEvent::Edited => "edited",
-            ProjectEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProjectCardEvent {
@@ -420,19 +241,6 @@ pub enum ProjectCardEvent {
     Converted,
     Edited,
     Deleted,
-}
-
-impl Display for ProjectCardEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            ProjectCardEvent::Created => "created",
-            ProjectCardEvent::Moved => "moved",
-            ProjectCardEvent::Converted => "converted",
-            ProjectCardEvent::Edited => "edited",
-            ProjectCardEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -445,18 +253,6 @@ pub enum ProjectColumnEvent {
     Deleted,
 }
 
-impl Display for ProjectColumnEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            ProjectColumnEvent::Created => "created",
-            ProjectColumnEvent::Updated => "updated",
-            ProjectColumnEvent::Moved => "moved",
-            ProjectColumnEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewEvent {
@@ -466,17 +262,6 @@ pub enum PullRequestReviewEvent {
     Dismissed,
 }
 
-impl Display for PullRequestReviewEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            PullRequestReviewEvent::Submitted => "submitted",
-            PullRequestReviewEvent::Edited => "edited",
-            PullRequestReviewEvent::Dismissed => "dismissed",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewCommentEvent {
@@ -484,17 +269,6 @@ pub enum PullRequestReviewCommentEvent {
     Created,
     Edited,
     Deleted,
-}
-
-impl Display for PullRequestReviewCommentEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            PullRequestReviewCommentEvent::Created => "created",
-            PullRequestReviewCommentEvent::Edited => "edited",
-            PullRequestReviewCommentEvent::Deleted => "deleted",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -522,49 +296,12 @@ pub enum PullRequestTargetEvent {
     AutoMergeDisabled,
 }
 
-impl Display for PullRequestTargetEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            PullRequestTargetEvent::Assigned => "assigned",
-            PullRequestTargetEvent::Unassigned => "unassigned",
-            PullRequestTargetEvent::Labeled => "labeled",
-            PullRequestTargetEvent::Unlabeled => "unlabeled",
-            PullRequestTargetEvent::Opened => "opened",
-            PullRequestTargetEvent::Edited => "edited",
-            PullRequestTargetEvent::Closed => "closed",
-            PullRequestTargetEvent::Reopened => "reopened",
-            PullRequestTargetEvent::Synchronize => "synchronize",
-            PullRequestTargetEvent::ConvertedToDraft => "converted_to_draft",
-            PullRequestTargetEvent::ReadyForReview => "ready_for_review",
-            PullRequestTargetEvent::Locked => "locked",
-            PullRequestTargetEvent::Unlocked => "unlocked",
-            PullRequestTargetEvent::Milestoned => "milestoned",
-            PullRequestTargetEvent::Demilestoned => "demilestoned",
-            PullRequestTargetEvent::ReviewRequested => "review_requested",
-            PullRequestTargetEvent::ReviewRequestRemoved => "review_request_removed",
-            PullRequestTargetEvent::AutoMergeEnabled => "auto_merge_enabled",
-            PullRequestTargetEvent::AutoMergeDisabled => "auto_merge_disabled",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum RegistryPackageEvent {
     #[default]
     Published,
     Updated,
-}
-
-impl Display for RegistryPackageEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            RegistryPackageEvent::Published => "published",
-            RegistryPackageEvent::Updated => "updated",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
@@ -580,21 +317,6 @@ pub enum ReleaseEvent {
     Released,
 }
 
-impl Display for ReleaseEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            ReleaseEvent::Published => "published",
-            ReleaseEvent::Unpublished => "unpublished",
-            ReleaseEvent::Created => "created",
-            ReleaseEvent::Edited => "edited",
-            ReleaseEvent::Deleted => "deleted",
-            ReleaseEvent::Prereleased => "prereleased",
-            ReleaseEvent::Released => "released",
-        };
-        write!(f, "{}", val)
-    }
-}
-
 #[derive(Default, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowRunEvent {
@@ -602,17 +324,6 @@ pub enum WorkflowRunEvent {
     Requested,
     Completed,
     InProgress,
-}
-
-impl Display for WorkflowRunEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let val = match self {
-            WorkflowRunEvent::Requested => "requested",
-            WorkflowRunEvent::Completed => "completed",
-            WorkflowRunEvent::InProgress => "in_progress",
-        };
-        write!(f, "{}", val)
-    }
 }
 
 #[derive(Default, Serialize, Clone, PartialEq)]
