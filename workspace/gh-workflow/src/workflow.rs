@@ -1,6 +1,7 @@
 #![allow(clippy::needless_update)]
 
 use std::fmt::Display;
+use std::marker::PhantomData;
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
@@ -90,13 +91,24 @@ impl Workflow {
                     .with_clippy()
                     .with_fmt(),
             )
-            // TODO: make it type-safe
-            .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]).name("Cargo Test"))
-            .add_step(Step::cargo_nightly("fmt", vec!["--check"]).name("Cargo Fmt"))
+            .add_step(
+                Step::cargo(
+                    Cargo::test()
+                        .all_features()
+                        .workspace(),
+                )
+                .name("Cargo Test"),
+            )
+            .add_step(
+                Step::cargo_nightly(Cargo::fmt().check()).name("Cargo Fmt"),
+            )
             .add_step(
                 Step::cargo_nightly(
-                    "clippy",
-                    vec!["--all-features", "--workspace", "--", "-D warnings"],
+                    Cargo::clippy()
+                        .all_features()
+                        .workspace()
+                        .add_arg("--")
+                        .add_arg("-D warnings"),
                 )
                 .name("Cargo Clippy"),
             );
@@ -176,7 +188,7 @@ pub struct Job {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, strum_macros::Display)]
 #[serde(rename_all = "kebab-case")]
-pub enum Cargo {
+enum CargoCommand {
     Add,
     Bench,
     Build,
@@ -227,6 +239,127 @@ pub enum Cargo {
     Version,
     Watch,
     Yank,
+}
+#[derive(Debug, PartialEq, Eq)]
+pub struct CargoTest;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct CargoClippy;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct CargoFmt;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct CargoCheck;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct CargoClean;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Cargo<Ty> {
+    command: CargoCommand,
+    args: Vec<String>,
+
+    marker: PhantomData<Ty>,
+}
+
+impl<Ty> Cargo<Ty> {
+    // TODO: add function to handle command
+    // specific sub command
+    pub fn add_arg<S: ToString>(mut self, arg: S) -> Self {
+        self.args.push(arg.to_string());
+
+        self
+    }
+}
+
+impl Cargo<CargoClean> {
+    pub fn clean() -> Cargo<CargoClean> {
+        Cargo {
+            command: CargoCommand::Clean,
+            args: vec![],
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Cargo<CargoCheck> {
+    pub fn check() -> Cargo<CargoCheck> {
+        Cargo {
+            command: CargoCommand::Check,
+            args: vec![],
+            marker: Default::default(),
+        }
+    }
+}
+
+impl Cargo<CargoTest> {
+    pub fn test() -> Cargo<CargoTest> {
+        Cargo {
+            command: CargoCommand::Test,
+            args: vec![],
+            marker: Default::default(),
+        }
+    }
+    pub fn all_features(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--all-features") {
+            self.args.push("--all-features".to_string());
+        }
+
+        self
+    }
+    pub fn workspace(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--workspace") {
+            self.args.push("--workspace".to_string());
+        }
+        self
+    }
+}
+
+
+impl Cargo<CargoClippy> {
+    pub fn clippy() -> Cargo<CargoClippy> {
+        Cargo {
+            command: CargoCommand::Clippy,
+            args: vec![],
+            marker: Default::default(),
+        }
+    }
+    pub fn all_features(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--all-features") {
+            self.args.push("--all-features".to_string());
+        }
+        self
+    }
+    pub fn workspace(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--workspace") {
+            self.args.push("--workspace".to_string());
+        }
+        self
+    }
+}
+
+impl Cargo<CargoFmt> {
+    pub fn fmt() -> Cargo<CargoFmt> {
+        Cargo {
+            command: CargoCommand::Fmt,
+            args: vec![],
+            marker: Default::default(),
+        }
+    }
+    pub fn all(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--all") {
+            self.args.push("--all".to_string());
+        }
+
+        self
+    }
+    pub fn check(mut self) -> Self {
+        if !self.args.iter().any(|arg| arg == "--check") {
+            self.args.push("--check".to_string());
+        }
+        self
+    }
 }
 
 impl Job {
@@ -362,21 +495,21 @@ impl Step<Run> {
             .reduce(|a, b| format!("{} {}", a, b))
             .unwrap_or_default()
     }
-    fn cargo_command<P: ToString>(prefix: Option<&str>, cmd: Cargo, params: Vec<P>) -> Self {
+    fn cargo_command<T>(prefix: Option<&str>, cargo: Cargo<T>) -> Self {
         Step::run(format!(
             "cargo{} {} {}",
             prefix.map(|v| format!(" {}", v)).unwrap_or_default(),
-            cmd.to_string().to_lowercase(),
-            Self::prepare_args(params)
+            cargo.command.to_string().to_lowercase(),
+            Self::prepare_args(cargo.args)
         ))
     }
 
-    pub fn cargo<P: ToString>(cmd: Cargo, params: Vec<P>) -> Self {
-        Self::cargo_command(None, cmd, params)
+    pub fn cargo<T>(cargo: Cargo<T>) -> Self {
+        Self::cargo_command(None, cargo)
     }
 
-    pub fn cargo_nightly<P: ToString>(cmd: Cargo, params: Vec<P>) -> Self {
-        Self::cargo_command(Some("+nightly"), cmd, params)
+    pub fn cargo_nightly<T>(cargo: Cargo<T>) -> Self {
+        Self::cargo_command(Some("+nightly"), cargo)
     }
 }
 
