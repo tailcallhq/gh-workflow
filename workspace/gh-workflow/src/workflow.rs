@@ -88,6 +88,9 @@ impl Workflow {
             ));
 
         let release_job = Job::new("Create release")
+            .if_condition(Expression::new(
+                "github.event_name == 'push' && github.ref == 'refs/heads/main'",
+            ))
             .add_step(Step::checkout())
             .add_step(Step::setup_rust().with_stable_toolchain())
             .add_step(Step::cargo("fetch", vec![""]))
