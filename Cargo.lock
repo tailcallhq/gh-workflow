@@ -20,6 +20,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "bytes"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
+
+[[package]]
 name = "console"
 version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,11 +133,13 @@ name = "gh-workflow"
 version = "0.1.2"
 dependencies = [
  "async-trait",
+ "bytes",
  "derive_more",
  "derive_setters",
  "indexmap",
  "insta",
  "merge",
+ "nom",
  "pretty_assertions",
  "serde",
  "serde_json",
@@ -230,6 +238,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "nom"
+version = "8.0.0-alpha2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2785486691910e746b3d84220af18362bd15ba71f9b7bc0a47ac549550b7fe2"
+dependencies = [
+ "memchr",
 ]
 
 [[package]]

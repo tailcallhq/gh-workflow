@@ -1,6 +1,7 @@
 pub mod error;
 mod event;
 mod generate;
+pub(crate) mod mustache;
 mod rust_flag;
 mod toolchain;
 pub(crate) mod workflow;
