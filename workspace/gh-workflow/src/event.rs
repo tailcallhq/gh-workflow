@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Setters, Debug, Serialize, Deserialize, Clone, Merge, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[setters(strip_option)]
-pub struct AnyEvent {
+pub struct EventValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub push: Option<Push>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ impl Event<PullRequestTarget> {
     }
 }
 
-impl<A: Into<AnyEvent>> From<Event<A>> for AnyEvent {
+impl<A: Into<EventValue>> From<Event<A>> for EventValue {
     fn from(value: Event<A>) -> Self {
         value.0.into()
     }
@@ -54,9 +54,9 @@ impl Event<Push> {
     }
 }
 
-impl From<Push> for AnyEvent {
+impl From<Push> for EventValue {
     fn from(value: Push) -> Self {
-        AnyEvent::default().push(value)
+        EventValue::default().push(value)
     }
 }
 
@@ -97,9 +97,9 @@ impl Event<PullRequest> {
     }
 }
 
-impl From<PullRequest> for AnyEvent {
+impl From<PullRequest> for EventValue {
     fn from(value: PullRequest) -> Self {
-        AnyEvent::default().pull_request(value)
+        EventValue::default().pull_request(value)
     }
 }
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -139,28 +139,28 @@ impl Event<PullRequestTarget> {
     }
 }
 
-impl From<PullRequestTarget> for AnyEvent {
+impl From<PullRequestTarget> for EventValue {
     fn from(value: PullRequestTarget) -> Self {
-        AnyEvent::default().pull_request_target(value)
+        EventValue::default().pull_request_target(value)
     }
 }
 
-pub struct Combine(AnyEvent);
+pub struct Combine(EventValue);
 
 impl<T> Event<T> {
     pub fn combine<U>(self, other: Event<U>) -> Event<Combine>
     where
-        T: Into<AnyEvent>,
-        U: Into<AnyEvent>,
+        T: Into<EventValue>,
+        U: Into<EventValue>,
     {
-        let mut l: AnyEvent = self.0.into();
-        let r: AnyEvent = other.0.into();
+        let mut l: EventValue = self.0.into();
+        let r: EventValue = other.0.into();
         l.merge(r);
         Event(Combine(l))
     }
 }
 
-impl From<Combine> for AnyEvent {
+impl From<Combine> for EventValue {
     fn from(value: Combine) -> Self {
         value.0
     }

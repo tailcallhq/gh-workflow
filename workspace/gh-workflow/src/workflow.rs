@@ -11,7 +11,7 @@ use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{AnyEvent, Cargo, Event, RustFlags, ToolchainStep};
+use crate::{EventValue, Cargo, Event, RustFlags, ToolchainStep};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -33,7 +33,7 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub on: Option<AnyEvent>,
+    pub on: Option<EventValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,9 +84,9 @@ impl Workflow {
         Generate::new(self).generate()
     }
 
-    pub fn add_event<T: Into<AnyEvent>>(mut self, that: T) -> Self {
+    pub fn add_event<T: Into<EventValue>>(mut self, that: T) -> Self {
         let mut this = self.on.unwrap_or_default();
-        let that: AnyEvent = that.into();
+        let that: EventValue = that.into();
         this.merge(that);
         self.on = Some(this);
         self
@@ -175,7 +175,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<AnyStep>>,
+    pub steps: Option<Vec<StepValue>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -213,7 +213,7 @@ impl Job {
         }
     }
 
-    pub fn add_step<S: Into<AnyStep>>(mut self, step: S) -> Self {
+    pub fn add_step<S: Into<StepValue>>(mut self, step: S) -> Self {
         let mut steps = self.steps.unwrap_or_default();
         steps.push(step.into().into());
         self.steps = Some(steps);
@@ -256,20 +256,20 @@ where
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum AnyStep {
+pub enum StepValue {
     Run(Step<Run>),
     Use(Step<Use>),
 }
 
-impl From<Step<Run>> for AnyStep {
+impl From<Step<Run>> for StepValue {
     fn from(step: Step<Run>) -> Self {
-        AnyStep::Run(step)
+        StepValue::Run(step)
     }
 }
 
-impl From<Step<Use>> for AnyStep {
+impl From<Step<Use>> for StepValue {
     fn from(step: Step<Use>) -> Self {
-        AnyStep::Use(step)
+        StepValue::Use(step)
     }
 }
 
@@ -407,7 +407,7 @@ impl<S1: Display, S2: Display> From<(S1, S2)> for Env {
     }
 }
 
-impl From<Step<Use>> for Step<AnyStep> {
+impl From<Step<Use>> for Step<StepValue> {
     fn from(value: Step<Use>) -> Self {
         Step {
             id: value.id,
@@ -427,7 +427,7 @@ impl From<Step<Use>> for Step<AnyStep> {
     }
 }
 
-impl From<Step<Run>> for Step<AnyStep> {
+impl From<Step<Run>> for Step<StepValue> {
     fn from(value: Step<Run>) -> Self {
         Step {
             id: value.id,

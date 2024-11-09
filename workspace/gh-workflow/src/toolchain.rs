@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 use derive_setters::Setters;
 
-use crate::{AnyStep, Input, RustFlags, Step};
+use crate::{StepValue, Input, RustFlags, Step};
 
 #[derive(Clone)]
 pub enum Toolchain {
@@ -191,7 +191,7 @@ impl ToolchainStep {
     }
 }
 
-impl From<ToolchainStep> for AnyStep {
+impl From<ToolchainStep> for StepValue {
     fn from(value: ToolchainStep) -> Self {
         let mut step =
             Step::uses("actions-rust-lang", "setup-rust-toolchain", 1).name("Setup Rust Toolchain");
