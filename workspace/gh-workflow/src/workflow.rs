@@ -1,11 +1,11 @@
 #![allow(clippy::needless_update)]
 
-use std::fmt::Display;
-
 use derive_setters::Setters;
 use indexmap::IndexMap;
+use merge::Merge;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
@@ -22,17 +22,15 @@ impl Jobs {
 
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub on: Option<AnyEvent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
@@ -84,12 +82,15 @@ impl Workflow {
         Generate::new(self).generate()
     }
 
-    pub fn on<T: Into<AnyEvent>>(mut self, on: T) -> Self {
-        self.on = Some(on.into());
+    pub fn add_event<T: Into<AnyEvent>>(mut self, that: T) -> Self {
+        let mut this = self.on.unwrap_or_default();
+        let that: AnyEvent = that.into();
+        this.merge(that);
+        self.on = Some(this);
         self
     }
 
-    pub fn env<T: Into<Env>>(mut self, new_env: T) -> Self {
+    pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
         let mut env = self.env.unwrap_or_default();
 
         env.0.extend(new_env.into().0);
@@ -168,7 +169,6 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub runs_on: Option<RunsOn>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
@@ -193,7 +193,6 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(into)]
     pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
@@ -218,16 +217,6 @@ impl Job {
         self.steps = Some(steps);
         self
     }
-
-    pub fn runs_on<T: Into<RunsOn>>(mut self, a: T) -> Self {
-        self.runs_on = Some(a.into());
-        self
-    }
-
-    // pub fn env<T: Into<Env>>(mut self, env: T) -> Self {
-    //     self.env = Some(env.into());
-    //     self
-    // }
 }
 
 impl From<&str> for RunsOn {
@@ -315,12 +304,11 @@ impl Input {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Step<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
     pub if_condition: Option<Expression>,
@@ -328,20 +316,17 @@ pub struct Step<T> {
     #[setters(skip)]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(into)]
     with: Option<Input>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub run: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub working_directory: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
@@ -350,23 +335,6 @@ pub struct Step<T> {
 
     #[serde(skip)]
     marker: std::marker::PhantomData<T>,
-}
-
-impl<T> Step<T> {
-    pub fn name<S: ToString>(mut self, name: S) -> Self {
-        self.name = Some(name.to_string());
-        self
-    }
-
-    pub fn env<R: Into<Env>>(mut self, env: R) -> Self {
-        self.env = Some(env.into());
-        self
-    }
-
-    pub fn working_directory<S: ToString>(mut self, working_directory: S) -> Self {
-        self.working_directory = Some(working_directory.to_string());
-        self
-    }
 }
 
 impl Step<Run> {
