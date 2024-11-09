@@ -1,4 +1,6 @@
-#![allow(clippy::needless_update)]
+//!
+//! The serde representation of Github Actions Workflow.
+//!
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
