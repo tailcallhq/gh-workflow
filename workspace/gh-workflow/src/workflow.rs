@@ -11,7 +11,7 @@ use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{Cargo, Event, EventValue, RustFlags, ToolchainStep};
+use crate::{Cargo, Event, EventValue, RustFlags, Toolchain};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -162,7 +162,7 @@ impl From<Value> for RunsOn {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub needs: Option<Value>,
@@ -386,8 +386,8 @@ impl Step<Use> {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
     }
 
-    pub fn setup_rust() -> ToolchainStep {
-        ToolchainStep::default()
+    pub fn setup_rust() -> Toolchain {
+        Toolchain::default()
     }
 }
 
@@ -459,7 +459,7 @@ pub enum Runner {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Container {
     pub image: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -478,7 +478,7 @@ pub struct Container {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
@@ -493,7 +493,7 @@ pub enum Port {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Volume {
     pub source: String,
     pub destination: String,
@@ -515,7 +515,7 @@ impl Volume {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Concurrency {
     pub group: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -526,7 +526,7 @@ pub struct Concurrency {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Permissions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub actions: Option<PermissionLevel>,
@@ -571,7 +571,7 @@ pub enum PermissionLevel {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Strategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matrix: Option<Value>,
@@ -583,7 +583,7 @@ pub struct Strategy {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Environment {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -592,7 +592,7 @@ pub struct Environment {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Defaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<RunDefaults>,
@@ -604,7 +604,7 @@ pub struct Defaults {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct RunDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shell: Option<String>,
@@ -614,7 +614,7 @@ pub struct RunDefaults {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct RetryDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
@@ -631,7 +631,7 @@ impl Expression {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Secret {
     pub required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -640,7 +640,7 @@ pub struct Secret {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct RetryStrategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
@@ -648,7 +648,7 @@ pub struct RetryStrategy {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Artifacts {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub upload: Option<Vec<Artifact>>,
@@ -658,7 +658,7 @@ pub struct Artifacts {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Artifact {
     pub name: String,
     pub path: String,

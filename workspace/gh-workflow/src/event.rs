@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Setters, Debug, Serialize, Deserialize, Clone, Merge, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct EventValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub push: Option<Push>,

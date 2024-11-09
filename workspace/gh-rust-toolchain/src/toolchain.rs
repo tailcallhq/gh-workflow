@@ -4,28 +4,28 @@ use std::fmt::{Display, Formatter};
 
 use derive_setters::Setters;
 
-use crate::{StepValue, Input, RustFlags, Step};
+use crate::{Input, RustFlags, Step, StepValue};
 
 #[derive(Clone)]
-pub enum Version {
+pub enum Toolchain {
     Stable,
     Nightly,
     Custom((u64, u64, u64)),
 }
 
-impl Display for Version {
+impl Display for Toolchain {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Version::Stable => write!(f, "stable"),
-            Version::Nightly => write!(f, "nightly"),
-            Version::Custom(s) => write!(f, "{}.{}.{}", s.0, s.1, s.2),
+            Toolchain::Stable => write!(f, "stable"),
+            Toolchain::Nightly => write!(f, "nightly"),
+            Toolchain::Custom(s) => write!(f, "{}.{}.{}", s.0, s.1, s.2),
         }
     }
 }
 
-impl Version {
+impl Toolchain {
     pub fn new(major: u64, minor: u64, patch: u64) -> Self {
-        Version::Custom((major, minor, patch))
+        Toolchain::Custom((major, minor, patch))
     }
 }
 
@@ -139,8 +139,8 @@ pub struct Target {
 /// possible.
 #[derive(Default, Clone, Setters)]
 #[setters(strip_option, into)]
-pub struct Toolchain {
-    pub toolchain: Vec<Version>,
+pub struct ToolchainStep {
+    pub toolchain: Vec<Toolchain>,
     #[setters(skip)]
     pub target: Option<Target>,
     pub components: Vec<Component>,
@@ -154,8 +154,8 @@ pub struct Toolchain {
     pub override_default: Option<bool>,
 }
 
-impl Toolchain {
-    pub fn add_toolchain(mut self, version: Version) -> Self {
+impl ToolchainStep {
+    pub fn add_toolchain(mut self, version: Toolchain) -> Self {
         self.toolchain.push(version);
         self
     }
@@ -166,12 +166,12 @@ impl Toolchain {
     }
 
     pub fn add_stable_toolchain(mut self) -> Self {
-        self.toolchain.push(Version::Stable);
+        self.toolchain.push(Toolchain::Stable);
         self
     }
 
     pub fn add_nightly_toolchain(mut self) -> Self {
-        self.toolchain.push(Version::Nightly);
+        self.toolchain.push(Toolchain::Nightly);
         self
     }
 
@@ -191,8 +191,8 @@ impl Toolchain {
     }
 }
 
-impl From<Toolchain> for StepValue {
-    fn from(value: Toolchain) -> Self {
+impl From<ToolchainStep> for StepValue {
+    fn from(value: ToolchainStep) -> Self {
         let mut step =
             Step::uses("actions-rust-lang", "setup-rust-toolchain", 1).name("Setup Rust Toolchain");
 
@@ -200,9 +200,9 @@ impl From<Toolchain> for StepValue {
             .toolchain
             .iter()
             .map(|t| match t {
-                Version::Stable => "stable".to_string(),
-                Version::Nightly => "nightly".to_string(),
-                Version::Custom((major, minor, patch)) => {
+                Toolchain::Stable => "stable".to_string(),
+                Toolchain::Nightly => "nightly".to_string(),
+                Toolchain::Custom((major, minor, patch)) => {
                     format!("{}.{}.{}", major, minor, patch)
                 }
             })
@@ -282,5 +282,51 @@ impl From<Toolchain> for StepValue {
         step = step.with(input);
 
         step.into()
+    }
+}
+
+impl From<ToolchainStep> for ToolchainStep {
+    fn from(value: ToolchainStep) -> Self {
+        pub fn setup_rust() -> Self {
+            let build_job = Job::new("Build and Test")
+                .add_step(Step::checkout())
+                .add_step(
+                    Toolchain::default()
+                        .add_stable_toolchain()
+                        .add_nightly_toolchain()
+                        .add_clippy()
+                        .add_fmt(),
+                )
+                .add_step(Step::cargo(Cargo::test().all_features().workspace()).name("Cargo Test"))
+                .add_step(Step::cargo_nightly(Cargo::fmt().check()).name("Cargo Fmt"))
+                .add_step(
+                    Step::cargo_nightly(
+                        Cargo::clippy()
+                            .all_features()
+                            .workspace()
+                            .add_arg("--")
+                            .add_arg("-D warnings"),
+                    )
+                    .name("Cargo Clippy"),
+                );
+
+            let push_event = Event::push().branch("main");
+
+            let pr_event = Event::pull_request_target()
+                .open()
+                .synchronize()
+                .reopen()
+                .branch("main");
+
+            let event = push_event.combine(pr_event);
+
+            let rust_flags = RustFlags::deny("warnings");
+
+            Workflow::new("Build and Test")
+                .env(rust_flags)
+                .permissions(Permissions::read())
+                .on(event)
+                .add_job("build", build_job)
+        }
     }
 }
