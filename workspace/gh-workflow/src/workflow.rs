@@ -154,9 +154,13 @@ pub enum ActivityType {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(transparent)]
 pub struct RunsOn(Value);
-impl From<Value> for RunsOn {
-    fn from(value: Value) -> Self {
-        RunsOn(value)
+
+impl<T> From<T> for RunsOn
+where
+    T: Into<Value>,
+{
+    fn from(value: T) -> Self {
+        RunsOn(value.into())
     }
 }
 
@@ -218,39 +222,6 @@ impl Job {
         steps.push(step.into().into());
         self.steps = Some(steps);
         self
-    }
-}
-
-impl From<&str> for RunsOn {
-    fn from(value: &str) -> Self {
-        RunsOn(Value::String(value.to_string()))
-    }
-}
-
-impl From<Vec<&str>> for RunsOn {
-    fn from(value: Vec<&str>) -> Self {
-        RunsOn(Value::Array(
-            value
-                .into_iter()
-                .map(|v| v.to_string())
-                .map(Value::String)
-                .collect(),
-        ))
-    }
-}
-
-impl<V> From<Vec<(&str, V)>> for RunsOn
-where
-    V: Into<RunsOn>,
-{
-    fn from(value: Vec<(&str, V)>) -> Self {
-        let val = value.into_iter().map(|(a, b)| (a.to_string(), b.into()));
-        let mut map = Map::new();
-        for (k, v) in val {
-            map.insert(k.to_string(), v.0);
-        }
-
-        RunsOn(Value::Object(map))
     }
 }
 
