@@ -9,7 +9,7 @@ use serde_json::{Map, Value};
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{AnyEvent, Cargo, Event, RustFlags, ToolchainStep};
+use crate::{AnyEvent, Cargo, Combine, Event, RustFlags, ToolchainStep};
 
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -116,13 +116,14 @@ impl Workflow {
             .reopen()
             .branch("main");
 
+        let event = push_event.combine(pr_event);
+
         let rust_flags = RustFlags::deny("warnings");
 
         Workflow::new("Build and Test")
             .env(rust_flags)
             .permissions(Permissions::read())
-            .on(push_event)
-            .on(pr_event)
+            .on(event)
             .add_job("build", build_job)
     }
 }

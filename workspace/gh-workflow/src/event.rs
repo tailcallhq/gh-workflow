@@ -144,3 +144,24 @@ impl From<PullRequestTarget> for AnyEvent {
         AnyEvent::default().pull_request_target(value)
     }
 }
+
+pub struct Combine(AnyEvent);
+
+impl<T> Event<T> {
+    pub fn combine<U>(self, other: Event<U>) -> Event<Combine>
+    where
+        T: Into<AnyEvent>,
+        U: Into<AnyEvent>,
+    {
+        let mut l: AnyEvent = self.0.into();
+        let r: AnyEvent = other.0.into();
+        l.merge(r);
+        Event(Combine(l))
+    }
+}
+
+impl From<Combine> for AnyEvent {
+    fn from(value: Combine) -> Self {
+        value.0
+    }
+}
