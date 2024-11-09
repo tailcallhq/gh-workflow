@@ -9,7 +9,16 @@ use serde_json::{Map, Value};
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{AnyEvent, Cargo, Combine, Event, RustFlags, ToolchainStep};
+use crate::{AnyEvent, Cargo, Event, RustFlags, ToolchainStep};
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct Jobs(IndexMap<String, Job>);
+impl Jobs {
+    pub fn insert(&mut self, key: String, value: Job) {
+        self.0.insert(key, value);
+    }
+}
 
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -27,8 +36,8 @@ pub struct Workflow {
     pub on: Option<AnyEvent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub jobs: IndexMap<String, Job>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Jobs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,8 +68,11 @@ impl Workflow {
 
     pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Self {
         let key = id.to_string();
+        let mut jobs = self.jobs.unwrap_or_default();
 
-        self.jobs.insert(key, job.into());
+        jobs.insert(key, job.into());
+
+        self.jobs = Some(jobs);
         self
     }
 
@@ -181,7 +193,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
+    #[setters(into)]
     pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
@@ -212,10 +224,10 @@ impl Job {
         self
     }
 
-    pub fn env<T: Into<Env>>(mut self, env: T) -> Self {
-        self.env = Some(env.into());
-        self
-    }
+    // pub fn env<T: Into<Env>>(mut self, env: T) -> Self {
+    //     self.env = Some(env.into());
+    //     self
+    // }
 }
 
 impl From<&str> for RunsOn {
