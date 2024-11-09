@@ -11,7 +11,7 @@ use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{EventValue, Cargo, Event, RustFlags, ToolchainStep};
+use crate::{Cargo, Event, EventValue, RustFlags, ToolchainStep};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -105,10 +105,10 @@ impl Workflow {
             .add_step(Step::checkout())
             .add_step(
                 Step::setup_rust()
-                    .with_stable_toolchain()
-                    .with_nightly_toolchain()
-                    .with_clippy()
-                    .with_fmt(),
+                    .add_stable_toolchain()
+                    .add_nightly_toolchain()
+                    .add_clippy()
+                    .add_fmt(),
             )
             .add_step(Step::cargo(Cargo::test().all_features().workspace()).name("Cargo Test"))
             .add_step(Step::cargo_nightly(Cargo::fmt().check()).name("Cargo Fmt"))
