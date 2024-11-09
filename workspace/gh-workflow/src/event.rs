@@ -2,12 +2,10 @@ use derive_setters::Setters;
 use merge::Merge;
 use serde::{Deserialize, Serialize};
 
-use crate::SetEvent;
-
 #[derive(Default, Setters, Debug, Serialize, Deserialize, Clone, Merge, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[setters(strip_option)]
-pub struct EventValue {
+pub struct AnyEvent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub push: Option<Push>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,14 +35,9 @@ impl Event<PullRequestTarget> {
     }
 }
 
-impl<A: Into<EventValue>> SetEvent for Event<A> {
-    fn apply(self, mut workflow: crate::Workflow) -> crate::Workflow {
-        let mut on: EventValue = self.0.into();
-        if let Some(other) = workflow.on {
-            on.merge(other);
-        }
-        workflow.on = Some(on);
-        workflow
+impl<A: Into<AnyEvent>> From<Event<A>> for AnyEvent {
+    fn from(value: Event<A>) -> Self {
+        value.0.into()
     }
 }
 
@@ -61,9 +54,9 @@ impl Event<Push> {
     }
 }
 
-impl From<Push> for EventValue {
+impl From<Push> for AnyEvent {
     fn from(value: Push) -> Self {
-        EventValue::default().push(value)
+        AnyEvent::default().push(value)
     }
 }
 
@@ -104,9 +97,9 @@ impl Event<PullRequest> {
     }
 }
 
-impl From<PullRequest> for EventValue {
+impl From<PullRequest> for AnyEvent {
     fn from(value: PullRequest) -> Self {
-        EventValue::default().pull_request(value)
+        AnyEvent::default().pull_request(value)
     }
 }
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -146,8 +139,8 @@ impl Event<PullRequestTarget> {
     }
 }
 
-impl From<PullRequestTarget> for EventValue {
+impl From<PullRequestTarget> for AnyEvent {
     fn from(value: PullRequestTarget) -> Self {
-        EventValue::default().pull_request_target(value)
+        AnyEvent::default().pull_request_target(value)
     }
 }
