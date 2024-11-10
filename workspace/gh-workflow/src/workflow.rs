@@ -105,8 +105,8 @@ impl Workflow {
             .add_step(Step::checkout())
             .add_step(
                 Step::setup_rust()
-                    .add_stable_toolchain()
-                    .add_nightly_toolchain()
+                    .add_stable()
+                    .add_nightly()
                     .add_clippy()
                     .add_fmt(),
             )

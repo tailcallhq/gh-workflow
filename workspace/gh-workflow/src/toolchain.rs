@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 use derive_setters::Setters;
 
-use crate::{StepValue, Input, RustFlags, Step};
+use crate::{Input, RustFlags, Step, StepValue};
 
 #[derive(Clone)]
 pub enum Version {
@@ -155,7 +155,7 @@ pub struct Toolchain {
 }
 
 impl Toolchain {
-    pub fn add_toolchain(mut self, version: Version) -> Self {
+    pub fn add_version(mut self, version: Version) -> Self {
         self.toolchain.push(version);
         self
     }
@@ -165,12 +165,12 @@ impl Toolchain {
         self
     }
 
-    pub fn add_stable_toolchain(mut self) -> Self {
+    pub fn add_stable(mut self) -> Self {
         self.toolchain.push(Version::Stable);
         self
     }
 
-    pub fn add_nightly_toolchain(mut self) -> Self {
+    pub fn add_nightly(mut self) -> Self {
         self.toolchain.push(Version::Nightly);
         self
     }
