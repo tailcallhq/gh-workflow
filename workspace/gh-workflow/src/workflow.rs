@@ -111,17 +111,22 @@ impl Workflow {
                     .add_clippy()
                     .add_fmt(),
             )
-            .add_step(Step::cargo(Cargo::test().all_features().workspace()).name("Cargo Test"))
-            .add_step(Step::cargo_nightly(Cargo::fmt().check()).name("Cargo Fmt"))
             .add_step(
-                Step::cargo_nightly(
-                    Cargo::clippy()
-                        .all_features()
-                        .workspace()
-                        .add_arg("--")
-                        .add_arg("-D warnings"),
-                )
-                .name("Cargo Clippy"),
+                Cargo::new("test")
+                    .args("--all-features --workspace")
+                    .name("Cargo Test"),
+            )
+            .add_step(
+                Cargo::new("fmt")
+                    .nightly()
+                    .args("--check")
+                    .name("Cargo Fmt"),
+            )
+            .add_step(
+                Cargo::new("clippy")
+                    .nightly()
+                    .args("--all-features --workspace -- -D warnings")
+                    .name("Cargo Clippy"),
             );
 
         let push_event = Event::push().branch("main");
@@ -226,22 +231,24 @@ impl Job {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(untagged)]
-pub enum StepValue {
-    Run(Step<Run>),
-    Use(Step<Use>),
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+
+pub struct Step<A> {
+    value: StepValue,
+    #[serde(skip)]
+    marker: std::marker::PhantomData<A>,
 }
 
 impl From<Step<Run>> for StepValue {
     fn from(step: Step<Run>) -> Self {
-        StepValue::Run(step)
+        step.value
     }
 }
 
 impl From<Step<Use>> for StepValue {
     fn from(step: Step<Use>) -> Self {
-        StepValue::Use(step)
+        step.value
     }
 }
 
@@ -279,7 +286,9 @@ impl Input {
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
-pub struct Step<T> {
+#[setters(generate_delegates(ty = "Step<Run>", field = "value"))]
+#[setters(generate_delegates(ty = "Step<Use>", field = "value"))]
+pub struct StepValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -306,44 +315,15 @@ pub struct Step<T> {
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Artifacts>,
-
-    #[serde(skip)]
-    marker: std::marker::PhantomData<T>,
 }
 
-impl Step<Run> {
+impl StepValue {
     pub fn run<T: ToString>(cmd: T) -> Self {
-        Step { run: Some(cmd.to_string()), ..Default::default() }
+        StepValue { run: Some(cmd.to_string()), ..Default::default() }
     }
 
-    fn prepare_args<P: ToString>(params: Vec<P>) -> String {
-        params
-            .iter()
-            .map(|a| a.to_string())
-            .reduce(|a, b| format!("{} {}", a, b))
-            .unwrap_or_default()
-    }
-    fn cargo_command<T>(prefix: Option<&str>, cargo: Cargo<T>) -> Self {
-        Step::run(format!(
-            "cargo{} {} {}",
-            prefix.map(|v| format!(" {}", v)).unwrap_or_default(),
-            cargo.command.to_string().to_lowercase(),
-            Self::prepare_args(cargo.args)
-        ))
-    }
-
-    pub fn cargo<T>(cargo: Cargo<T>) -> Self {
-        Self::cargo_command(None, cargo)
-    }
-
-    pub fn cargo_nightly<T>(cargo: Cargo<T>) -> Self {
-        Self::cargo_command(Some("+nightly"), cargo)
-    }
-}
-
-impl Step<Use> {
     pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
-        Step {
+        StepValue {
             uses: Some(format!(
                 "{}/{}@v{}",
                 owner.to_string(),
@@ -353,8 +333,23 @@ impl Step<Use> {
             ..Default::default()
         }
     }
+}
 
-    pub fn checkout() -> Self {
+impl Step<Run> {
+    pub fn run<T: ToString>(cmd: T) -> Self {
+        Step { value: StepValue::run(cmd), marker: Default::default() }
+    }
+}
+
+impl Step<Use> {
+    pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
+        Step {
+            value: StepValue::uses(owner, repo, version),
+            marker: Default::default(),
+        }
+    }
+
+    pub fn checkout() -> Step<Use> {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
     }
 }
@@ -372,46 +367,6 @@ impl<S1: Display, S2: Display> From<(S1, S2)> for Env {
         let mut index_map: IndexMap<String, Value> = IndexMap::new();
         index_map.insert(value.0.to_string(), Value::String(value.1.to_string()));
         Env(index_map)
-    }
-}
-
-impl From<Step<Use>> for Step<StepValue> {
-    fn from(value: Step<Use>) -> Self {
-        Step {
-            id: value.id,
-            name: value.name,
-            if_condition: value.if_condition,
-            uses: value.uses,
-            with: value.with,
-            run: value.run,
-            env: value.env,
-            timeout_minutes: value.timeout_minutes,
-            continue_on_error: value.continue_on_error,
-            working_directory: value.working_directory,
-            retry: value.retry,
-            artifacts: value.artifacts,
-            marker: Default::default(),
-        }
-    }
-}
-
-impl From<Step<Run>> for Step<StepValue> {
-    fn from(value: Step<Run>) -> Self {
-        Step {
-            id: value.id,
-            name: value.name,
-            if_condition: value.if_condition,
-            uses: value.uses,
-            with: value.with,
-            run: value.run,
-            env: value.env,
-            timeout_minutes: value.timeout_minutes,
-            continue_on_error: value.continue_on_error,
-            working_directory: value.working_directory,
-            retry: value.retry,
-            artifacts: value.artifacts,
-            marker: Default::default(),
-        }
     }
 }
 
