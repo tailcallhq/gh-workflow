@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, strum_macros::Display)]
 #[serde(rename_all = "kebab-case")]
-pub enum CargoCommand {
+pub enum Command {
     Add,
     Bench,
     Build,
@@ -57,28 +57,28 @@ pub enum CargoCommand {
     Yank,
 }
 #[derive(Debug, PartialEq, Eq)]
-pub struct CargoTest;
+pub struct Test;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct CargoClippy;
+pub struct Clippy;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct CargoFmt;
+pub struct Fmt;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct CargoCheck;
+pub struct Check;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct CargoClean;
+pub struct Clean;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Cargo<Ty> {
-    pub command: CargoCommand,
+pub struct Cargo<T> {
+    pub command: Command,
     pub args: Vec<String>,
-    marker: PhantomData<Ty>,
+    marker: PhantomData<T>,
 }
 
-impl<Ty> Cargo<Ty> {
+impl<T> Cargo<T> {
     // TODO: add function to handle command
     // specific sub command
     pub fn add_arg<S: ToString>(mut self, arg: S) -> Self {
@@ -88,30 +88,30 @@ impl<Ty> Cargo<Ty> {
     }
 }
 
-impl Cargo<CargoClean> {
-    pub fn clean() -> Cargo<CargoClean> {
+impl Cargo<Clean> {
+    pub fn clean() -> Cargo<Clean> {
         Cargo {
-            command: CargoCommand::Clean,
+            command: Command::Clean,
             args: vec![],
             marker: Default::default(),
         }
     }
 }
 
-impl Cargo<CargoCheck> {
-    pub fn check() -> Cargo<CargoCheck> {
+impl Cargo<Check> {
+    pub fn check() -> Cargo<Check> {
         Cargo {
-            command: CargoCommand::Check,
+            command: Command::Check,
             args: vec![],
             marker: Default::default(),
         }
     }
 }
 
-impl Cargo<CargoTest> {
-    pub fn test() -> Cargo<CargoTest> {
+impl Cargo<Test> {
+    pub fn test() -> Cargo<Test> {
         Cargo {
-            command: CargoCommand::Test,
+            command: Command::Test,
             args: vec![],
             marker: Default::default(),
         }
@@ -131,10 +131,10 @@ impl Cargo<CargoTest> {
     }
 }
 
-impl Cargo<CargoClippy> {
-    pub fn clippy() -> Cargo<CargoClippy> {
+impl Cargo<Clippy> {
+    pub fn clippy() -> Cargo<Clippy> {
         Cargo {
-            command: CargoCommand::Clippy,
+            command: Command::Clippy,
             args: vec![],
             marker: Default::default(),
         }
@@ -153,10 +153,10 @@ impl Cargo<CargoClippy> {
     }
 }
 
-impl Cargo<CargoFmt> {
-    pub fn fmt() -> Cargo<CargoFmt> {
+impl Cargo<Fmt> {
+    pub fn fmt() -> Cargo<Fmt> {
         Cargo {
-            command: CargoCommand::Fmt,
+            command: Command::Fmt,
             args: vec![],
             marker: Default::default(),
         }
