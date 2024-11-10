@@ -11,8 +11,7 @@ use serde_json::Value;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::toolchain::Toolchain;
-use crate::{Cargo, Event, PullRequestTarget, Push, RustFlags};
+use crate::Event;
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -99,53 +98,6 @@ impl Workflow {
         env.0.extend(new_env.into().0);
         self.env = Some(env);
         self
-    }
-
-    pub fn setup_rust() -> Self {
-        let build_job = Job::new("Build and Test")
-            .add_step(Step::checkout())
-            .add_step(
-                Toolchain::default()
-                    .add_stable()
-                    .add_nightly()
-                    .add_clippy()
-                    .add_fmt(),
-            )
-            .add_step(
-                Cargo::new("test")
-                    .args("--all-features --workspace")
-                    .name("Cargo Test"),
-            )
-            .add_step(
-                Cargo::new("fmt")
-                    .nightly()
-                    .args("--check")
-                    .name("Cargo Fmt"),
-            )
-            .add_step(
-                Cargo::new("clippy")
-                    .nightly()
-                    .args("--all-features --workspace -- -D warnings")
-                    .name("Cargo Clippy"),
-            );
-
-        let event = Event::default()
-            .push(Push::default().add_branch("main"))
-            .pull_request_target(
-                PullRequestTarget::default()
-                    .open()
-                    .synchronize()
-                    .reopen()
-                    .add_branch("main"),
-            );
-
-        let flags = RustFlags::deny("warnings");
-
-        Workflow::new("Build and Test")
-            .env(flags)
-            .permissions(Permissions::read())
-            .on(event)
-            .add_job("build", build_job)
     }
 }
 
