@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Setters, Debug, Serialize, Deserialize, Clone, Merge, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[setters(strip_option, into)]
-pub struct EventValue {
+pub struct Event {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub push: Option<Push>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -15,48 +15,22 @@ pub struct EventValue {
     // TODO: add all more events
 }
 
-pub struct Event<A>(A);
-
-impl Event<Push> {
-    pub fn push() -> Self {
-        Event(Push::default())
-    }
-}
-
-impl Event<PullRequest> {
-    pub fn pull_request() -> Self {
-        Event(PullRequest::default())
-    }
-}
-
-impl Event<PullRequestTarget> {
-    pub fn pull_request_target() -> Self {
-        Event(PullRequestTarget::default())
-    }
-}
-
-impl<A: Into<EventValue>> From<Event<A>> for EventValue {
-    fn from(value: Event<A>) -> Self {
-        value.0.into()
-    }
-}
-
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub struct Push {
     branches: Vec<String>,
 }
 
-impl Event<Push> {
-    pub fn branch<S: ToString>(mut self, branch: S) -> Self {
-        self.0.branches.push(branch.to_string());
+impl Push {
+    pub fn add_branch<S: ToString>(mut self, branch: S) -> Self {
+        self.branches.push(branch.to_string());
         self
     }
 }
 
-impl From<Push> for EventValue {
+impl From<Push> for Event {
     fn from(value: Push) -> Self {
-        EventValue::default().push(value)
+        Event::default().push(value)
     }
 }
 
@@ -69,18 +43,18 @@ pub struct PullRequest {
     branches: Option<Vec<String>>,
 }
 
-impl Event<PullRequest> {
-    pub fn branch<S: ToString>(mut self, branch: S) -> Self {
-        let mut branches = self.0.branches.unwrap_or_default();
+impl PullRequest {
+    pub fn add_branch<S: ToString>(mut self, branch: S) -> Self {
+        let mut branches = self.branches.unwrap_or_default();
         branches.push(branch.to_string());
-        self.0.branches = Some(branches);
+        self.branches = Some(branches);
         self
     }
 
     fn add_type(mut self, ty: &str) -> Self {
-        let mut types = self.0.types.unwrap_or_default();
+        let mut types = self.types.unwrap_or_default();
         types.push(ty.to_string());
-        self.0.types = Some(types);
+        self.types = Some(types);
         self
     }
 
@@ -97,9 +71,9 @@ impl Event<PullRequest> {
     }
 }
 
-impl From<PullRequest> for EventValue {
+impl From<PullRequest> for Event {
     fn from(value: PullRequest) -> Self {
-        EventValue::default().pull_request(value)
+        Event::default().pull_request(value)
     }
 }
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -111,18 +85,18 @@ pub struct PullRequestTarget {
     branches: Option<Vec<String>>,
 }
 
-impl Event<PullRequestTarget> {
-    pub fn branch<S: ToString>(mut self, branch: S) -> Self {
-        let mut branches = self.0.branches.unwrap_or_default();
+impl PullRequestTarget {
+    pub fn add_branch<S: ToString>(mut self, branch: S) -> Self {
+        let mut branches = self.branches.unwrap_or_default();
         branches.push(branch.to_string());
-        self.0.branches = Some(branches);
+        self.branches = Some(branches);
         self
     }
 
     fn add_type(mut self, ty: &str) -> Self {
-        let mut types = self.0.types.unwrap_or_default();
+        let mut types = self.types.unwrap_or_default();
         types.push(ty.to_string());
-        self.0.types = Some(types);
+        self.types = Some(types);
         self
     }
 
@@ -139,29 +113,8 @@ impl Event<PullRequestTarget> {
     }
 }
 
-impl From<PullRequestTarget> for EventValue {
+impl From<PullRequestTarget> for Event {
     fn from(value: PullRequestTarget) -> Self {
-        EventValue::default().pull_request_target(value)
-    }
-}
-
-pub struct Combine(EventValue);
-
-impl<T> Event<T> {
-    pub fn combine<U>(self, other: Event<U>) -> Event<Combine>
-    where
-        T: Into<EventValue>,
-        U: Into<EventValue>,
-    {
-        let mut l: EventValue = self.0.into();
-        let r: EventValue = other.0.into();
-        l.merge(r);
-        Event(Combine(l))
-    }
-}
-
-impl From<Combine> for EventValue {
-    fn from(value: Combine) -> Self {
-        value.0
+        Event::default().pull_request_target(value)
     }
 }

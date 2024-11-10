@@ -12,7 +12,7 @@ use serde_json::Value;
 use crate::error::Result;
 use crate::generate::Generate;
 use crate::toolchain::Toolchain;
-use crate::{Cargo, Event, EventValue, RustFlags};
+use crate::{Cargo, Event, PullRequestTarget, Push, RustFlags};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -34,7 +34,7 @@ pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub on: Option<EventValue>,
+    pub on: Option<Event>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -85,9 +85,9 @@ impl Workflow {
         Generate::new(self).generate()
     }
 
-    pub fn add_event<T: Into<EventValue>>(mut self, that: T) -> Self {
+    pub fn add_event<T: Into<Event>>(mut self, that: T) -> Self {
         let mut this = self.on.unwrap_or_default();
-        let that: EventValue = that.into();
+        let that: Event = that.into();
         this.merge(that);
         self.on = Some(this);
         self
@@ -129,20 +129,20 @@ impl Workflow {
                     .name("Cargo Clippy"),
             );
 
-        let push_event = Event::push().branch("main");
+        let event = Event::default()
+            .push(Push::default().add_branch("main"))
+            .pull_request_target(
+                PullRequestTarget::default()
+                    .open()
+                    .synchronize()
+                    .reopen()
+                    .add_branch("main"),
+            );
 
-        let pr_event = Event::pull_request_target()
-            .open()
-            .synchronize()
-            .reopen()
-            .branch("main");
-
-        let event = push_event.combine(pr_event);
-
-        let rust_flags = RustFlags::deny("warnings");
+        let flags = RustFlags::deny("warnings");
 
         Workflow::new("Build and Test")
-            .env(rust_flags)
+            .env(flags)
             .permissions(Permissions::read())
             .on(event)
             .add_job("build", build_job)
