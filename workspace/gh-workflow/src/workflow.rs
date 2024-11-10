@@ -1,17 +1,18 @@
 //!
 //! The serde representation of Github Actions Workflow.
-//!
+
+use std::fmt::Display;
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
 use merge::Merge;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{toolchain::Toolchain, Cargo, Event, EventValue, RustFlags};
+use crate::toolchain::Toolchain;
+use crate::{Cargo, Event, EventValue, RustFlags};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
@@ -219,7 +220,7 @@ impl Job {
 
     pub fn add_step<S: Into<StepValue>>(mut self, step: S) -> Self {
         let mut steps = self.steps.unwrap_or_default();
-        steps.push(step.into().into());
+        steps.push(step.into());
         self.steps = Some(steps);
         self
     }
@@ -579,9 +580,8 @@ pub struct RunDefaults {
     pub working_directory: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option, into)]
 pub struct RetryDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
@@ -605,9 +605,8 @@ pub struct Secret {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option, into)]
 pub struct RetryStrategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
