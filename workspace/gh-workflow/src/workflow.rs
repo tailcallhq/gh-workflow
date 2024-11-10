@@ -104,7 +104,7 @@ impl Workflow {
         let build_job = Job::new("Build and Test")
             .add_step(Step::checkout())
             .add_step(
-                Step::setup_rust()
+                Toolchain::default()
                     .add_stable()
                     .add_nightly()
                     .add_clippy()
@@ -355,10 +355,6 @@ impl Step<Use> {
 
     pub fn checkout() -> Self {
         Step::uses("actions", "checkout", 4).name("Checkout Code")
-    }
-
-    pub fn setup_rust() -> Toolchain {
-        Toolchain::default()
     }
 }
 
