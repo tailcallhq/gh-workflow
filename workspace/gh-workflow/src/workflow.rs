@@ -233,7 +233,6 @@ impl Job {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
-
 pub struct Step<A> {
     value: StepValue,
     #[serde(skip)]
@@ -282,12 +281,15 @@ impl Input {
         self
     }
 }
-
+#[allow(clippy::duplicated_attributes)]
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option, into)]
-#[setters(generate_delegates(ty = "Step<Run>", field = "value"))]
-#[setters(generate_delegates(ty = "Step<Use>", field = "value"))]
+#[setters(
+    strip_option,
+    into,
+    generate_delegates(ty = "Step<Run>", field = "value"),
+    generate_delegates(ty = "Step<Use>", field = "value")
+)]
 pub struct StepValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,

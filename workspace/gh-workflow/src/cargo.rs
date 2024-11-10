@@ -1,6 +1,7 @@
 use derive_setters::Setters;
 
-use crate::{toolchain::Version, StepValue};
+use crate::toolchain::Version;
+use crate::StepValue;
 
 #[derive(Setters)]
 #[setters(strip_option, into)]
