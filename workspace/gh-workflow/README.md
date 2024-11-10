@@ -3,7 +3,7 @@
 [![Rust](https://img.shields.io/badge/Language-Rust-blue?style=flat-square)](https://www.rust-lang.org)
 [![Build Status](https://github.com/tailcallhq/rust-gh-workflows/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Crates.io](https://img.shields.io/crates/v/rust-gh-workflows?style=flat-square)](https://crates.io/crates/rust-gh-workflows)
+[![Crates.io](https://img.shields.io/crates/v/gh-workflow?style=flat-square)](https://crates.io/crates/gh-workflow)
 [![Contributors](https://img.shields.io/github/contributors/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/graphs/contributors)
 [![GitHub forks](https://img.shields.io/github/forks/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/network/members)
 [![Stars](https://img.shields.io/github/stars/tailcallhq/rust-gh-workflows?style=flat-square)](https://github.com/tailcallhq/rust-gh-workflows/stargazers)
