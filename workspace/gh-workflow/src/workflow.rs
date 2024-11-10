@@ -6,12 +6,12 @@ use derive_setters::Setters;
 use indexmap::IndexMap;
 use merge::Merge;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 use std::fmt::Display;
 
 use crate::error::Result;
 use crate::generate::Generate;
-use crate::{Cargo, Event, EventValue, RustFlags, Toolchain};
+use crate::{toolchain::Toolchain, Cargo, Event, EventValue, RustFlags};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
