@@ -92,6 +92,7 @@ impl Workflow {
         self
     }
 
+    /// Adds the provided value as an environment variable to the workflow.
     pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
         let mut env = self.env.unwrap_or_default();
 
@@ -100,8 +101,8 @@ impl Workflow {
         self
     }
 
-    /// Add the default token created by GitHub to authenticate on behalf of GitHub Actions.
-    /// See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    /// Add the default token created by GitHub to authenticate on behalf of
+    /// GitHub Actions. See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
     pub fn add_github_token(self) -> Self {
         self.add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
     }
@@ -198,8 +199,8 @@ impl Job {
         self
     }
 
-    /// Add the default token created by GitHub to authenticate on behalf of GitHub Actions.
-    /// See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    /// Add the default token created by GitHub to authenticate on behalf of
+    /// GitHub Actions. See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
     pub fn add_github_token(self) -> Self {
         self.add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
     }
@@ -338,6 +339,23 @@ impl StepValue {
             )),
             ..Default::default()
         }
+    }
+}
+
+impl<T> Step<T> {
+    /// Adds the provided value as an environment variable to the Step.
+    pub fn add_env<R: Into<Env>>(mut self, new_env: R) -> Self {
+        let mut env = self.value.env.unwrap_or_default();
+
+        env.0.extend(new_env.into().0);
+        self.value.env = Some(env);
+        self
+    }
+
+    /// Add the default token created by GitHub to authenticate on behalf of
+    /// GitHub Actions. See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    pub fn add_github_token(self) -> Self {
+        self.add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
     }
 }
 

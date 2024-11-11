@@ -35,7 +35,12 @@ pub struct ReleasePlz {
 
 #[derive(Clone)]
 pub enum Command {
+    /// Create a release PR.
+    /// See: <https://release-plz.ieni.dev/docs/usage/release-pr>
     ReleasePR,
+
+    /// Release the package.
+    /// See: <https://release-plz.ieni.dev/docs/usage/release>
     Release,
 }
 

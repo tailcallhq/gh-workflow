@@ -49,12 +49,10 @@ jobs:
       run: cargo +nightly fmt --check
     - name: Cargo Clippy
       run: cargo +nightly clippy --all-features --workspace -- -D warnings
-  release:
-    needs: build
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
+    - run: find . -name Cargo.toml
     - name: Release Plz
       uses: MarcoIeni/release-plz-action@v0.5
+      with:
+        command: release-pr
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

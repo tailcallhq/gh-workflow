@@ -1,5 +1,5 @@
 use gh_workflow::*;
-use gh_workflow_release_plz::ReleasePlz;
+use gh_workflow_release_plz::{Command, ReleasePlz};
 use toolchain::Toolchain;
 
 fn main() {
@@ -30,7 +30,10 @@ fn main() {
                 .nightly()
                 .args("--all-features --workspace -- -D warnings")
                 .name("Cargo Clippy"),
-        );
+        )
+        .add_step(Step::run("find . -name Cargo.toml"))
+        .add_step(ReleasePlz::default().command(Command::ReleasePR))
+        .add_github_token();
 
     let event = Event::default()
         .push(Push::default().add_branch("main"))
@@ -42,16 +45,11 @@ fn main() {
                 .add_branch("main"),
         );
 
-    let release = Job::new("Release")
-        .add_step(ReleasePlz::default())
-        .needs("build");
-
     Workflow::new("Build and Test")
         .add_env(flags)
         .permissions(Permissions::read())
         .on(event)
         .add_job("build", job)
-        .add_job("release", release.add_github_token())
         .generate()
         .unwrap();
 }
