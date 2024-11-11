@@ -136,6 +136,10 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub runs_on: Option<RunsOn>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub env: Option<Env>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub steps: Option<Vec<StepValue>>,
@@ -143,8 +147,6 @@ pub struct Job {
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub outputs: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -157,8 +159,6 @@ pub struct Job {
     pub secrets: Option<IndexMap<String, Secret>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

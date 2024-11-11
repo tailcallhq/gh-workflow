@@ -1,9 +1,10 @@
 use derive_setters::Setters;
-use gh_workflow::{Step, Use};
+
+use crate::{Step, Use};
 
 #[derive(Clone, Default, Setters)]
 #[setters(strip_option, into)]
-pub struct ReleasePlz {
+pub struct Release {
     /// The release-plz command to run. Accepted values: release-pr, release.
     /// (By default it runs both commands).
     pub command: Option<Command>,
@@ -68,8 +69,8 @@ impl std::fmt::Display for Backend {
     }
 }
 
-impl From<ReleasePlz> for Step<Use> {
-    fn from(value: ReleasePlz) -> Self {
+impl From<Release> for Step<Use> {
+    fn from(value: Release) -> Self {
         let mut step = Step::uses("MarcoIeni", "release-plz-action", "0.5").name("Release Plz");
 
         if let Some(command) = value.command {

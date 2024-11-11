@@ -18,8 +18,6 @@
 name: Build and Test
 env:
   RUSTFLAGS: -Dwarnings
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 on:
   push:
     branches:
@@ -53,12 +51,15 @@ jobs:
     needs: build
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
     - name: Release Plz
       uses: MarcoIeni/release-plz-action@v0.5
-    permissions:
-      contents: write
-      pull-requests: write
-      packages: write

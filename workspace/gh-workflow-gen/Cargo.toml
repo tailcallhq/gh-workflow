@@ -7,4 +7,3 @@ publish = false
 [build-dependencies]
 
 gh-workflow = { path = "../gh-workflow" }
-gh-workflow-release-plz = { path = "../gh-workflow-release-plz" }

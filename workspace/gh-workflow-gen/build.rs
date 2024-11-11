@@ -1,5 +1,5 @@
 use gh_workflow::*;
-use gh_workflow_release_plz::ReleasePlz;
+use release_plz::Release;
 use toolchain::Toolchain;
 
 fn main() {
@@ -49,17 +49,17 @@ fn main() {
 
     let release = Job::new("Release")
         .needs("build")
-        .permissions(permissions)
-        .add_step(Step::checkout())
-        .add_step(ReleasePlz::default());
-
-    Workflow::new("Build and Test")
-        .add_env(flags)
         .add_env(Env::github())
         .add_env(Env::new(
             "CARGO_REGISTRY_TOKEN",
             "${{ secrets.CARGO_REGISTRY_TOKEN }}",
         ))
+        .permissions(permissions)
+        .add_step(Step::checkout())
+        .add_step(Release::default());
+
+    Workflow::new("Build and Test")
+        .add_env(flags)
         .on(event)
         .add_job("build", build)
         .add_job("release", release)
