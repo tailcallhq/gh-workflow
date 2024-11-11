@@ -99,6 +99,12 @@ impl Workflow {
         self.env = Some(env);
         self
     }
+
+    /// Add the default token created by GitHub to authenticate on behalf of GitHub Actions.
+    /// See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    pub fn add_github_token(self) -> Self {
+        self.add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -190,6 +196,12 @@ impl Job {
         env.0.extend(new_env.into().0);
         self.env = Some(env);
         self
+    }
+
+    /// Add the default token created by GitHub to authenticate on behalf of GitHub Actions.
+    /// See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    pub fn add_github_token(self) -> Self {
+        self.add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
     }
 }
 

@@ -1,6 +1,8 @@
+use derive_setters::Setters;
 use gh_workflow::{Step, Use};
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Setters)]
+#[setters(strip_option, into)]
 pub struct ReleasePlz {
     /// The release-plz command to run. Accepted values: release-pr, release.
     /// (By default it runs both commands).

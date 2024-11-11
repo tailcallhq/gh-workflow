@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+derive_setters = "0.1.6"
 gh-workflow = { path = "../gh-workflow" }
 

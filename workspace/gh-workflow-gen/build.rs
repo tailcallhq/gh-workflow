@@ -51,10 +51,7 @@ fn main() {
         .permissions(Permissions::read())
         .on(event)
         .add_job("build", job)
-        .add_job(
-            "release",
-            release.add_env(("GITHUB_TOKEN", "${{ secrets.GH_TOKEN }}")),
-        )
+        .add_job("release", release.add_github_token())
         .generate()
         .unwrap();
 }

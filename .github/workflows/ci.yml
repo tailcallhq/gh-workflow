@@ -57,4 +57,4 @@ jobs:
     - name: Release Plz
       uses: MarcoIeni/release-plz-action@v0.5
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
