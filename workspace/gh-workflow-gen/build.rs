@@ -1,40 +1,68 @@
-use gh_workflow::{
-    Component, Event, Job, Permissions, PullRequest, Push, RustFlags, Step, Toolchain, Workflow,
-};
+use gh_workflow::*;
+use release_plz::Release;
+use toolchain::Toolchain;
 
 fn main() {
-    let rust_flags = RustFlags::deny("warnings");
+    let flags = RustFlags::deny("warnings");
 
-    Workflow::new("CI")
-        .env(rust_flags)
-        .permissions(Permissions::read())
-        .on(Event::default()
-            .push(Push::default().branch("main"))
-            .pull_request(
-                PullRequest::default()
-                    .open()
-                    .synchronize()
-                    .reopen()
-                    .branch("main"),
-            ))
-        .add_job(
-            "build",
-            Job::new("Build and Test")
-                .add_step(Step::checkout())
-                .add_step(
-                    Step::setup_rust()
-                        .add_toolchain(Toolchain::Stable)
-                        .add_toolchain(Toolchain::Nightly)
-                        .components(vec![Component::Clippy, Component::Rustfmt]),
-                )
-                .add_step(Step::cargo("test", vec!["--all-features", "--workspace"]))
-                .add_step(Step::cargo_nightly("fmt", vec!["--check"]))
-                .add_step(Step::cargo_nightly(
-                    "clippy",
-                    vec!["--all-features", "--workspace", "--", "-D warnings"],
-                )),
+    let build = Job::new("Build and Test")
+        .add_step(Step::checkout())
+        .add_step(
+            Toolchain::default()
+                .add_stable()
+                .add_nightly()
+                .add_clippy()
+                .add_fmt(),
         )
-        .unwrap()
+        .add_step(
+            Cargo::new("test")
+                .args("--all-features --workspace")
+                .name("Cargo Test"),
+        )
+        .add_step(
+            Cargo::new("fmt")
+                .nightly()
+                .args("--check")
+                .name("Cargo Fmt"),
+        )
+        .add_step(
+            Cargo::new("clippy")
+                .nightly()
+                .args("--all-features --workspace -- -D warnings")
+                .name("Cargo Clippy"),
+        );
+
+    let event = Event::default()
+        .push(Push::default().add_branch("main"))
+        .pull_request_target(
+            PullRequestTarget::default()
+                .open()
+                .synchronize()
+                .reopen()
+                .add_branch("main"),
+        );
+
+    let permissions = Permissions::default()
+        .pull_requests(Level::Write)
+        .packages(Level::Write)
+        .contents(Level::Write);
+
+    let release = Job::new("Release")
+        .needs("build")
+        .add_env(Env::github())
+        .add_env(Env::new(
+            "CARGO_REGISTRY_TOKEN",
+            "${{ secrets.CARGO_REGISTRY_TOKEN }}",
+        ))
+        .permissions(permissions)
+        .add_step(Step::checkout())
+        .add_step(Release::default());
+
+    Workflow::new("Build and Test")
+        .add_env(flags)
+        .on(event)
+        .add_job("build", build)
+        .add_job("release", release)
         .generate()
         .unwrap();
 }

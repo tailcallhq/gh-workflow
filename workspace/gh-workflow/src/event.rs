@@ -7,7 +7,7 @@ use crate::{is_default, SetEvent};
 
 #[derive(Serialize, Setters, Clone)]
 #[serde(rename_all = "snake_case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Event {
     #[serde(skip_serializing_if = "is_default")]
     pub push: Option<Push>,
@@ -582,15 +582,27 @@ impl SetEvent for Event {
 }
 
 impl Push {
-    pub fn branch<S: ToString>(mut self, branch: S) -> Self {
+    pub fn add_branch<S: ToString>(mut self, branch: S) -> Self {
         self.branches.push(branch.to_string());
         self
+    }
+
+    pub fn branches(self, branches: Vec<String>) -> Self {
+        Push { branches }
+    }
+}
+
+impl From<Push> for Event {
+    fn from(value: Push) -> Self {
+        Event::default().push(value)
     }
 }
 
 impl PullRequest {
-    pub fn branch<S: ToString>(mut self, branch: S) -> Self {
-        self.branches.push(branch.to_string());
+    pub fn add_branch<S: ToString>(mut self, branch: S) -> Self {
+        let mut branches = self.branches.unwrap_or_default();
+        branches.push(branch.to_string());
+        self.branches = Some(branches);
         self
     }
 
@@ -607,5 +619,23 @@ impl PullRequest {
     pub fn reopen(mut self) -> Self {
         self.types.push(PullRequestActivity::Reopened);
         self
+    }
+
+    pub fn open(self) -> Self {
+        self.add_type("opened")
+    }
+
+    pub fn synchronize(self) -> Self {
+        self.add_type("synchronize")
+    }
+
+    pub fn reopen(self) -> Self {
+        self.add_type("reopened")
+    }
+}
+
+impl From<PullRequestTarget> for Event {
+    fn from(value: PullRequestTarget) -> Self {
+        Event::default().pull_request_target(value)
     }
 }

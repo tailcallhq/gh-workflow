@@ -1,34 +1,43 @@
-#![allow(clippy::needless_update)]
+//!
+//! The serde representation of Github Actions Workflow.
 
 use std::fmt::Display;
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
+use merge::Merge;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::generate::Generate;
-use crate::ToolchainStep;
+use crate::{private, Event};
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct Jobs(IndexMap<String, Job>);
+impl Jobs {
+    pub fn insert(&mut self, key: String, value: Job) {
+        self.0.insert(key, value);
+    }
+}
 
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Workflow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    pub env: Option<IndexMap<String, String>>,
+    pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    pub on: Option<Value>,
+    pub on: Option<Event>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub jobs: IndexMap<String, Job>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Jobs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,14 +66,14 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
-    pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Result<Self> {
+    pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Self {
         let key = id.to_string();
-        if self.jobs.contains_key(&key) {
-            return Err(Error::JobIdAlreadyExists(key.as_str().to_string()));
-        }
+        let mut jobs = self.jobs.unwrap_or_default();
 
-        self.jobs.insert(key, job.into());
-        Ok(self)
+        jobs.insert(key, job.into());
+
+        self.jobs = Some(jobs);
+        self
     }
 
     pub fn parse(yml: &str) -> Result<Self> {
@@ -75,12 +84,21 @@ impl Workflow {
         Generate::new(self).generate()
     }
 
-    pub fn on<T: SetEvent>(self, a: T) -> Self {
-        a.apply(self)
+    pub fn add_event<T: Into<Event>>(mut self, that: T) -> Self {
+        let mut this = self.on.unwrap_or_default();
+        let that: Event = that.into();
+        this.merge(that);
+        self.on = Some(this);
+        self
     }
 
-    pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
-        env.apply(self)
+    /// Adds the provided value as an environment variable to the workflow.
+    pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
+        let mut env = self.env.unwrap_or_default();
+
+        env.0.extend(new_env.into().0);
+        self.env = Some(env);
+        self
     }
 }
 
@@ -92,29 +110,43 @@ pub enum ActivityType {
     Deleted,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[serde(transparent)]
+pub struct RunsOn(Value);
+
+impl<T> From<T> for RunsOn
+where
+    T: Into<Value>,
+{
+    fn from(value: T) -> Self {
+        RunsOn(value.into())
+    }
+}
+
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub needs: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
-    pub if_condition: Option<Expression>,
+    pub cond: Option<Expression>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    pub runs_on: Option<Value>,
+    pub runs_on: Option<RunsOn>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<AnyStep>>,
+    pub steps: Option<Vec<StepValue>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container: Option<Container>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub outputs: Option<IndexMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -128,9 +160,6 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    pub env: Option<IndexMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
@@ -142,47 +171,46 @@ impl Job {
     pub fn new<T: ToString>(name: T) -> Self {
         Self {
             name: Some(name.to_string()),
-            runs_on: Some(Value::from("ubuntu-latest")),
+            runs_on: Some(RunsOn(Value::from("ubuntu-latest"))),
             ..Default::default()
         }
     }
 
-    pub fn add_step<S: AddStep>(self, step: S) -> Self {
-        step.apply(self)
+    pub fn add_step<S: Into<Step<T>>, T: StepType>(mut self, step: S) -> Self {
+        let mut steps = self.steps.unwrap_or_default();
+        let step: Step<T> = step.into();
+        let step: StepValue = T::to_value(step);
+        steps.push(step);
+        self.steps = Some(steps);
+        self
     }
 
-    pub fn runs_on<T: SetEnv<Self>>(self, a: T) -> Self {
-        a.apply(self)
-    }
+    pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
+        let mut env = self.env.unwrap_or_default();
 
-    pub fn env<T: SetEnv<Self>>(self, env: T) -> Self {
-        env.apply(self)
-    }
-}
-
-impl<T: Into<Value>> SetRunner for T {
-    fn apply(self, mut job: Job) -> Job {
-        job.runs_on = Some(self.into());
-        job
+        env.0.extend(new_env.into().0);
+        self.env = Some(env);
+        self
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(untagged)]
-pub enum AnyStep {
-    Run(Step<Run>),
-    Use(Step<Use>),
+#[serde(transparent)]
+pub struct Step<A> {
+    value: StepValue,
+    #[serde(skip)]
+    marker: std::marker::PhantomData<A>,
 }
 
-impl From<Step<Run>> for AnyStep {
+impl From<Step<Run>> for StepValue {
     fn from(step: Step<Run>) -> Self {
-        AnyStep::Run(step)
+        step.value
     }
 }
 
-impl From<Step<Use>> for AnyStep {
+impl From<Step<Use>> for StepValue {
     fn from(step: Step<Use>) -> Self {
-        AnyStep::Use(step)
+        step.value
     }
 }
 
@@ -192,14 +220,96 @@ pub struct Use;
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Run;
 
+/// A trait to convert Step<Run> and Step<Use> to StepValue.
+pub trait StepType: Sized + private::Sealed {
+    fn to_value(s: Step<Self>) -> StepValue;
+}
+
+impl private::Sealed for Run {}
+impl private::Sealed for Use {}
+
+impl StepType for Run {
+    fn to_value(s: Step<Self>) -> StepValue {
+        s.into()
+    }
+}
+
+impl StepType for Use {
+    fn to_value(s: Step<Self>) -> StepValue {
+        s.into()
+    }
+}
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct Env(IndexMap<String, Value>);
+impl From<IndexMap<String, Value>> for Env {
+    fn from(value: IndexMap<String, Value>) -> Self {
+        Env(value)
+    }
+}
+
+impl Env {
+    /// Sets the `GITHUB_TOKEN` env variable with the default token created by
+    /// GitHub to authenticate on behalf of the actions. See: <https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication>
+    pub fn github() -> Self {
+        let mut map = IndexMap::new();
+        map.insert(
+            "GITHUB_TOKEN".to_string(),
+            Value::from("${{ secrets.GITHUB_TOKEN }}"),
+        );
+        Env(map)
+    }
+
+    pub fn new<K: ToString, V: Into<Value>>(key: K, value: V) -> Self {
+        Env::default().add(key, value)
+    }
+
+    /// Adds the provided value as an environment variable to the Env.
+    pub fn add<T1: ToString, T2: Into<Value>>(mut self, key: T1, value: T2) -> Self {
+        self.0.insert(key.to_string(), value.into());
+        self
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct Input(#[serde(skip_serializing_if = "IndexMap::is_empty")] IndexMap<String, Value>);
+impl From<IndexMap<String, Value>> for Input {
+    fn from(value: IndexMap<String, Value>) -> Self {
+        Input(value)
+    }
+}
+
+impl Merge for Input {
+    fn merge(&mut self, other: Self) {
+        self.0.extend(other.0);
+    }
+}
+
+impl Input {
+    pub fn add<S: ToString, V: Into<Value>>(mut self, key: S, value: V) -> Self {
+        self.0.insert(key.to_string(), value.into());
+        self
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+#[allow(clippy::duplicated_attributes)]
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
-pub struct Step<T> {
+#[setters(
+    strip_option,
+    into,
+    generate_delegates(ty = "Step<Run>", field = "value"),
+    generate_delegates(ty = "Step<Use>", field = "value")
+)]
+pub struct StepValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
     pub if_condition: Option<Expression>,
@@ -207,14 +317,12 @@ pub struct Step<T> {
     #[setters(skip)]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    with: Option<IndexMap<String, Value>>,
+    with: Option<Input>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub run: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[setters(skip)]
-    pub env: Option<IndexMap<String, String>>,
+    pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -225,181 +333,92 @@ pub struct Step<T> {
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Artifacts>,
+}
 
-    #[serde(skip)]
-    marker: std::marker::PhantomData<T>,
+impl StepValue {
+    pub fn run<T: ToString>(cmd: T) -> Self {
+        StepValue { run: Some(cmd.to_string()), ..Default::default() }
+    }
+
+    pub fn uses<Owner: ToString, Repo: ToString, Version: ToString>(
+        owner: Owner,
+        repo: Repo,
+        version: Version,
+    ) -> Self {
+        StepValue {
+            uses: Some(format!(
+                "{}/{}@v{}",
+                owner.to_string(),
+                repo.to_string(),
+                version.to_string()
+            )),
+            ..Default::default()
+        }
+    }
 }
 
 impl<T> Step<T> {
-    pub fn name<S: ToString>(mut self, name: S) -> Self {
-        self.name = Some(name.to_string());
+    /// Adds the provided value as an environment variable to the Step.
+    pub fn add_env<R: Into<Env>>(mut self, new_env: R) -> Self {
+        let mut env = self.value.env.unwrap_or_default();
+
+        env.0.extend(new_env.into().0);
+        self.value.env = Some(env);
         self
-    }
-
-    pub fn env<R: SetEnv<Self>>(self, env: R) -> Self {
-        env.apply(self)
-    }
-}
-
-impl<T> AddStep for Step<T>
-where
-    Step<T>: Into<AnyStep>,
-{
-    fn apply(self, mut job: Job) -> Job {
-        let mut steps = job.steps.unwrap_or_default();
-        steps.push(self.into());
-        job.steps = Some(steps);
-
-        job
     }
 }
 
 impl Step<Run> {
     pub fn run<T: ToString>(cmd: T) -> Self {
-        Step { run: Some(cmd.to_string()), ..Default::default() }
-    }
-
-    pub fn cargo<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
-        Step::run(format!(
-            "cargo {} {}",
-            cmd.to_string(),
-            params
-                .iter()
-                .map(|a| a.to_string())
-                .reduce(|a, b| { format!("{} {}", a, b) })
-                .unwrap_or_default()
-        ))
-    }
-
-    pub fn cargo_nightly<T: ToString, P: ToString>(cmd: T, params: Vec<P>) -> Self {
-        Step::cargo(format!("+nightly {}", cmd.to_string()), params)
+        Step { value: StepValue::run(cmd), marker: Default::default() }
     }
 }
 
 impl Step<Use> {
-    pub fn uses<Owner: ToString, Repo: ToString>(owner: Owner, repo: Repo, version: u64) -> Self {
+    pub fn uses<Owner: ToString, Repo: ToString, Version: ToString>(
+        owner: Owner,
+        repo: Repo,
+        version: Version,
+    ) -> Self {
         Step {
-            uses: Some(format!(
-                "{}/{}@v{}",
-                owner.to_string(),
-                repo.to_string(),
-                version
-            )),
-            ..Default::default()
-        }
-    }
-
-    pub fn with<K: SetInput>(self, item: K) -> Self {
-        item.apply(self)
-    }
-
-    pub fn checkout() -> Self {
-        Step::uses("actions", "checkout", 4).name("Checkout Code")
-    }
-
-    pub fn setup_rust() -> ToolchainStep {
-        ToolchainStep::default()
-    }
-}
-
-impl SetInput for IndexMap<String, Value> {
-    fn apply(self, mut step: Step<Use>) -> Step<Use> {
-        let mut with = step.with.unwrap_or_default();
-        with.extend(self);
-        step.with = Some(with);
-        step
-    }
-}
-
-impl<S1: Display, S2: Display> SetInput for (S1, S2) {
-    fn apply(self, mut step: Step<Use>) -> Step<Use> {
-        let mut with = step.with.unwrap_or_default();
-        with.insert(self.0.to_string(), Value::String(self.1.to_string()));
-        step.with = Some(with);
-        step
-    }
-}
-
-impl<S1: Display, S2: Display> SetEnv<Job> for (S1, S2) {
-    fn apply(self, mut value: Job) -> Job {
-        let mut index_map: IndexMap<String, String> = value.env.unwrap_or_default();
-        index_map.insert(self.0.to_string(), self.1.to_string());
-        value.env = Some(index_map);
-        value
-    }
-}
-
-impl From<Step<Use>> for Step<AnyStep> {
-    fn from(value: Step<Use>) -> Self {
-        Step {
-            id: value.id,
-            name: value.name,
-            if_condition: value.if_condition,
-            uses: value.uses,
-            with: value.with,
-            run: value.run,
-            env: value.env,
-            timeout_minutes: value.timeout_minutes,
-            continue_on_error: value.continue_on_error,
-            working_directory: value.working_directory,
-            retry: value.retry,
-            artifacts: value.artifacts,
+            value: StepValue::uses(owner, repo, version),
             marker: Default::default(),
         }
     }
-}
 
-impl From<Step<Run>> for Step<AnyStep> {
-    fn from(value: Step<Run>) -> Self {
-        Step {
-            id: value.id,
-            name: value.name,
-            if_condition: value.if_condition,
-            uses: value.uses,
-            with: value.with,
-            run: value.run,
-            env: value.env,
-            timeout_minutes: value.timeout_minutes,
-            continue_on_error: value.continue_on_error,
-            working_directory: value.working_directory,
-            retry: value.retry,
-            artifacts: value.artifacts,
-            marker: Default::default(),
+    /// Creates a step pointing to the default Github's Checkout Action
+    /// See: <https://github.com/actions/checkout>
+    pub fn checkout() -> Step<Use> {
+        Step::uses("actions", "checkout", 4.0).name("Checkout Code")
+    }
+
+    /// Add a new input to the step.
+    pub fn add_with<I: Into<Input>>(mut self, new_with: I) -> Self {
+        let mut with = self.value.with.unwrap_or_default();
+        with.merge(new_with.into());
+        if with.0.is_empty() {
+            self.value.with = None;
+        } else {
+            self.value.with = Some(with);
         }
+
+        self
     }
 }
 
-/// Set the `env` for Step, Job or Workflows
-pub trait SetEnv<Value> {
-    fn apply(self, value: Value) -> Value;
+impl<S1: ToString, S2: ToString> From<(S1, S2)> for Input {
+    fn from(value: (S1, S2)) -> Self {
+        let mut index_map: IndexMap<String, Value> = IndexMap::new();
+        index_map.insert(value.0.to_string(), Value::String(value.1.to_string()));
+        Input(index_map)
+    }
 }
 
-/// Set the `run` for a Job
-pub trait SetRunner {
-    fn apply(self, job: Job) -> Job;
-}
-
-/// Sets the event for a Workflow
-pub trait SetEvent {
-    fn apply(self, workflow: Workflow) -> Workflow;
-}
-
-/// Sets the input for a Step that uses another action
-pub trait SetInput {
-    fn apply(self, step: Step<Use>) -> Step<Use>;
-}
-
-/// Inserts a step into a job
-pub trait AddStep {
-    fn apply(self, job: Job) -> Job;
-}
-
-impl<S1: Display, S2: Display> SetEnv<Step<Use>> for (S1, S2) {
-    fn apply(self, mut step: Step<Use>) -> Step<Use> {
-        let mut index_map: IndexMap<String, Value> = step.with.unwrap_or_default();
-        index_map.insert(self.0.to_string(), Value::String(self.1.to_string()));
-        step.with = Some(index_map);
-        step
+impl<S1: Display, S2: Display> From<(S1, S2)> for Env {
+    fn from(value: (S1, S2)) -> Self {
+        let mut index_map: IndexMap<String, Value> = IndexMap::new();
+        index_map.insert(value.0.to_string(), Value::String(value.1.to_string()));
+        Env(index_map)
     }
 }
 
@@ -415,13 +434,13 @@ pub enum Runner {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Container {
     pub image: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub credentials: Option<Credentials>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub env: Option<IndexMap<String, String>>,
+    pub env: Option<Env>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<Port>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -434,7 +453,7 @@ pub struct Container {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
@@ -449,7 +468,7 @@ pub enum Port {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Volume {
     pub source: String,
     pub destination: String,
@@ -471,7 +490,7 @@ impl Volume {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Concurrency {
     pub group: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -480,45 +499,37 @@ pub struct Concurrency {
     pub limit: Option<u32>,
 }
 
+/// Sets the permissions for `GITHUB_TOKEN`
+/// See: <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token>
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Permissions {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub actions: Option<PermissionLevel>,
+    pub actions: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub contents: Option<PermissionLevel>,
+    pub contents: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub issues: Option<PermissionLevel>,
+    pub issues: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pull_requests: Option<PermissionLevel>,
+    pub pull_requests: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub deployments: Option<PermissionLevel>,
+    pub deployments: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub checks: Option<PermissionLevel>,
+    pub checks: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub statuses: Option<PermissionLevel>,
+    pub statuses: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub packages: Option<PermissionLevel>,
+    pub packages: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pages: Option<PermissionLevel>,
+    pub pages: Option<Level>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id_token: Option<PermissionLevel>,
-}
-
-impl Permissions {
-    pub fn read() -> Self {
-        Self { contents: Some(PermissionLevel::Read), ..Default::default() }
-    }
-
-    pub fn write() -> Self {
-        Self { contents: Some(PermissionLevel::Write), ..Default::default() }
-    }
+    pub id_token: Option<Level>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-pub enum PermissionLevel {
+pub enum Level {
     Read,
     Write,
     #[default]
@@ -527,7 +538,7 @@ pub enum PermissionLevel {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Strategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matrix: Option<Value>,
@@ -539,7 +550,7 @@ pub struct Strategy {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Environment {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -548,7 +559,7 @@ pub struct Environment {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Defaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<RunDefaults>,
@@ -560,7 +571,7 @@ pub struct Defaults {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct RunDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shell: Option<String>,
@@ -568,9 +579,8 @@ pub struct RunDefaults {
     pub working_directory: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
 pub struct RetryDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
@@ -587,16 +597,15 @@ impl Expression {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Secret {
     pub required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
 pub struct RetryStrategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
@@ -604,7 +613,7 @@ pub struct RetryStrategy {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Artifacts {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub upload: Option<Vec<Artifact>>,
@@ -614,7 +623,7 @@ pub struct Artifacts {
 
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[serde(rename_all = "kebab-case")]
-#[setters(strip_option)]
+#[setters(strip_option, into)]
 pub struct Artifact {
     pub name: String,
     pub path: String,
