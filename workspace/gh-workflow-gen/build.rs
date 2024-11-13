@@ -36,9 +36,9 @@ fn main() {
         .push(Push::default().add_branch("main"))
         .pull_request_target(
             PullRequestTarget::default()
-                .open()
-                .synchronize()
-                .reopen()
+                .add_type(PullRequestType::Opened)
+                .add_type(PullRequestType::Synchronize)
+                .add_type(PullRequestType::Reopened)
                 .add_branch("main"),
         );
 

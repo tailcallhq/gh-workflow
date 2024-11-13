@@ -13,7 +13,7 @@ use crate::error::Result;
 use crate::generate::Generate;
 use crate::{private, Event};
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Jobs(IndexMap<String, Job>);
 impl Jobs {
@@ -22,7 +22,7 @@ impl Jobs {
     }
 }
 
-#[derive(Debug, Default, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Setters, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Workflow {
@@ -48,7 +48,7 @@ pub struct Workflow {
     pub timeout_minutes: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct EventAction {
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -85,10 +85,12 @@ impl Workflow {
     }
 
     pub fn add_event<T: Into<Event>>(mut self, that: T) -> Self {
-        let mut this = self.on.unwrap_or_default();
-        let that: Event = that.into();
-        this.merge(that);
-        self.on = Some(this);
+        if let Some(mut this) = self.on.take() {
+            this.merge(that.into());
+            self.on = Some(this);
+        } else {
+            self.on = Some(that.into());
+        }
         self
     }
 
@@ -102,7 +104,7 @@ impl Workflow {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub enum ActivityType {
     Created,
@@ -110,7 +112,7 @@ pub enum ActivityType {
     Deleted,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
 pub struct RunsOn(Value);
 
@@ -123,7 +125,7 @@ where
     }
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Job {
@@ -194,7 +196,7 @@ impl Job {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Step<A> {
     value: StepValue,
@@ -214,10 +216,10 @@ impl From<Step<Use>> for StepValue {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Use;
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Run;
 
 /// A trait to convert Step<Run> and Step<Use> to StepValue.
@@ -240,7 +242,7 @@ impl StepType for Use {
     }
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Env(IndexMap<String, Value>);
 impl From<IndexMap<String, Value>> for Env {
@@ -272,7 +274,7 @@ impl Env {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Input(#[serde(skip_serializing_if = "IndexMap::is_empty")] IndexMap<String, Value>);
 impl From<IndexMap<String, Value>> for Input {
@@ -298,7 +300,7 @@ impl Input {
     }
 }
 #[allow(clippy::duplicated_attributes)]
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(
     strip_option,
@@ -422,7 +424,7 @@ impl<S1: Display, S2: Display> From<(S1, S2)> for Env {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum Runner {
     #[default]
@@ -432,7 +434,7 @@ pub enum Runner {
     Custom(String),
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Container {
@@ -451,7 +453,7 @@ pub struct Container {
     pub hostname: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Credentials {
@@ -459,14 +461,14 @@ pub struct Credentials {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub enum Port {
     Number(u16),
     Name(String),
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Volume {
@@ -488,7 +490,7 @@ impl Volume {
     }
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Concurrency {
@@ -501,7 +503,7 @@ pub struct Concurrency {
 
 /// Sets the permissions for `GITHUB_TOKEN`
 /// See: <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token>
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Permissions {
@@ -527,7 +529,7 @@ pub struct Permissions {
     pub id_token: Option<Level>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum Level {
     Read,
@@ -536,7 +538,7 @@ pub enum Level {
     None,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Strategy {
@@ -548,7 +550,7 @@ pub struct Strategy {
     pub max_parallel: Option<u32>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Environment {
@@ -557,7 +559,7 @@ pub struct Environment {
     pub url: Option<String>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Defaults {
@@ -569,7 +571,7 @@ pub struct Defaults {
     pub concurrency: Option<Concurrency>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct RunDefaults {
@@ -579,14 +581,14 @@ pub struct RunDefaults {
     pub working_directory: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct RetryDefaults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Expression(String);
 
 impl Expression {
@@ -595,7 +597,7 @@ impl Expression {
     }
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Secret {
@@ -604,14 +606,14 @@ pub struct Secret {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct RetryStrategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_attempts: Option<u32>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Artifacts {
@@ -621,7 +623,7 @@ pub struct Artifacts {
     pub download: Option<Vec<Artifact>>,
 }
 
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Artifact {
