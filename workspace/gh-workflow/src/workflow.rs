@@ -14,7 +14,6 @@ use crate::generate::Generate;
 use crate::{private, Event};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Jobs(IndexMap<String, Job>);
 impl Jobs {
@@ -380,7 +379,6 @@ impl Input {
 
 /// Represents a step value in the workflow.
 #[allow(clippy::duplicated_attributes)]
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(
