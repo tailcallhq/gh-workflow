@@ -23,65 +23,58 @@ impl Jobs {
 }
 
 /// Represents the configuration for a GitHub workflow.
+/// 
+/// A workflow is a configurable automated process made up of one or more jobs. 
+/// This struct defines the properties that can be set in a workflow YAML file 
+/// for GitHub Actions, including the name, environment variables, permissions, 
+/// jobs, concurrency settings, and more.
 #[derive(Debug, Default, Setters, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Workflow {
-    /// The permissions required for the workflow.
+    /// The name of the workflow. GitHub displays the names of your workflows 
+    /// under your repository's "Actions" tab.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub permissions: Option<Permissions>,
-    
-    /// Environment variables for the workflow.
+    pub name: Option<String>,
+
+    /// Environment variables that can be used in the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<Env>,
-    
-    /// The strategy for running the workflow.
+
+    /// The name for workflow runs generated from the workflow. 
+    /// GitHub displays the workflow run name in the list of workflow runs.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub strategy: Option<Strategy>,
-    
-    /// The steps to execute in the workflow.
+    pub run_name: Option<String>,
+
+    /// The event that triggers the workflow. This can include events like 
+    /// `push`, `pull_request`, etc.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub steps: Option<Vec<StepValue>>,
-    
-    /// The action to use in the workflow.
+    pub on: Option<Event>,
+
+    /// Permissions granted to the `GITHUB_TOKEN` for the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uses: Option<String>,
-    
-    /// The container configuration for the workflow.
+    pub permissions: Option<Permissions>,
+
+    /// The jobs that are defined in the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub container: Option<Container>,
-    
-    /// The outputs of the workflow.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub outputs: Option<IndexMap<String, String>>,
-    
-    /// The concurrency settings for the workflow.
+    pub jobs: Option<Jobs>,
+
+    /// Concurrency settings for the workflow, allowing control over 
+    /// how jobs are executed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
-    
-    /// The timeout for the workflow in minutes.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeout_minutes: Option<u32>,
-    
-    /// The services required for the workflow.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<IndexMap<String, Container>>,
-    
-    /// The secrets required for the workflow.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<IndexMap<String, Secret>>,
-    
-    /// Default settings for the workflow.
+
+    /// Default settings for jobs in the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
-    
-    /// Whether to continue on error.
+
+    /// Secrets that can be used in the workflow, such as tokens or passwords.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub continue_on_error: Option<bool>,
-    
-    /// The retry strategy for the workflow.
+    pub secrets: Option<IndexMap<String, Secret>>,
+
+    /// The maximum number of minutes a job can run before it is canceled.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub retry: Option<RetryStrategy>,
+    pub timeout_minutes: Option<u32>,
 }
 
 /// Represents an action that can be triggered by an event in the workflow.
@@ -131,12 +124,6 @@ impl Workflow {
 
     /// Adds an event to the workflow.
     pub fn add_event<T: Into<Event>>(mut self, that: T) -> Self {
-        if let Some(mut this) = self.on.take() {
-            this.merge(that.into());
-            self.on = Some(this);
-        } else {
-            self.on = Some(that.into());
-        }
         if let Some(mut this) = self.on.take() {
             this.merge(that.into());
             self.on = Some(this);
@@ -391,49 +378,49 @@ pub struct StepValue {
     /// The ID of the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    
+
     /// The name of the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    
+
     /// The condition under which the step runs.
     #[serde(skip_serializing_if = "Option::is_none", rename = "if")]
     pub if_condition: Option<Expression>,
-    
+
     /// The action to use in the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub uses: Option<String>,
-    
+
     /// Input parameters for the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub with: Option<Input>,
-    
+
     /// The command to run in the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[setters(skip)]
     pub run: Option<String>,
-    
+
     /// Environment variables for the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<Env>,
-    
+
     /// The timeout for the step in minutes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_minutes: Option<u32>,
-    
+
     /// Whether to continue on error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continue_on_error: Option<bool>,
-    
+
     /// The working directory for the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub working_directory: Option<String>,
-    
+
     /// The retry strategy for the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
-    
+
     /// Artifacts produced by the step.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Artifacts>,
@@ -554,27 +541,27 @@ pub enum Runner {
 pub struct Container {
     /// The image to use for the container.
     pub image: String,
-    
+
     /// Credentials for accessing the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub credentials: Option<Credentials>,
-    
+
     /// Environment variables for the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<Env>,
-    
+
     /// Ports to expose from the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<Port>>,
-    
+
     /// Volumes to mount in the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub volumes: Option<Vec<Volume>>,
-    
+
     /// Additional options for the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<String>,
-    
+
     /// Hostname for the container.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
@@ -587,7 +574,7 @@ pub struct Container {
 pub struct Credentials {
     /// The username for authentication.
     pub username: String,
-    
+
     /// The password for authentication.
     pub password: String,
 }
@@ -598,7 +585,7 @@ pub struct Credentials {
 pub enum Port {
     /// A port specified by its number.
     Number(u16),
-    
+
     /// A port specified by its name.
     Name(String),
 }
@@ -610,7 +597,7 @@ pub enum Port {
 pub struct Volume {
     /// The source path of the volume.
     pub source: String,
-    
+
     /// The destination path of the volume.
     pub destination: String,
 }
@@ -637,11 +624,11 @@ impl Volume {
 pub struct Concurrency {
     /// The group name for concurrency.
     pub group: String,
-    
+
     /// Whether to cancel in-progress jobs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cancel_in_progress: Option<bool>,
-    
+
     /// The limit on concurrent jobs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
@@ -655,39 +642,39 @@ pub struct Permissions {
     /// Permissions for actions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub actions: Option<Level>,
-    
+
     /// Permissions for repository contents.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contents: Option<Level>,
-    
+
     /// Permissions for issues.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub issues: Option<Level>,
-    
+
     /// Permissions for pull requests.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pull_requests: Option<Level>,
-    
+
     /// Permissions for deployments.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deployments: Option<Level>,
-    
+
     /// Permissions for checks.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checks: Option<Level>,
-    
+
     /// Permissions for statuses.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub statuses: Option<Level>,
-    
+
     /// Permissions for packages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub packages: Option<Level>,
-    
+
     /// Permissions for pages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pages: Option<Level>,
-    
+
     /// Permissions for ID tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id_token: Option<Level>,
@@ -711,11 +698,11 @@ pub struct Strategy {
     /// The matrix for job execution.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matrix: Option<Value>,
-    
+
     /// Whether to fail fast on errors.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_fast: Option<bool>,
-    
+
     /// The maximum number of jobs to run in parallel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_parallel: Option<u32>,
@@ -728,7 +715,7 @@ pub struct Strategy {
 pub struct Environment {
     /// The name of the environment.
     pub name: String,
-    
+
     /// The URL associated with the environment.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
@@ -742,11 +729,11 @@ pub struct Defaults {
     /// Default settings for running jobs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<RunDefaults>,
-    
+
     /// Default retry settings for jobs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryDefaults>,
-    
+
     /// Default concurrency settings for jobs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<Concurrency>,
@@ -760,7 +747,7 @@ pub struct RunDefaults {
     /// The shell to use for running commands.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shell: Option<String>,
-    
+
     /// The working directory for running commands.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub working_directory: Option<String>,
@@ -793,7 +780,7 @@ impl Expression {
 pub struct Secret {
     /// Indicates if the secret is required.
     pub required: bool,
-    
+
     /// A description of the secret.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -816,7 +803,7 @@ pub struct Artifacts {
     /// Artifacts to upload after the job.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub upload: Option<Vec<Artifact>>,
-    
+
     /// Artifacts to download before the job.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub download: Option<Vec<Artifact>>,
@@ -829,10 +816,10 @@ pub struct Artifacts {
 pub struct Artifact {
     /// The name of the artifact.
     pub name: String,
-    
+
     /// The path to the artifact.
     pub path: String,
-    
+
     /// The number of days to retain the artifact.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retention_days: Option<u32>,
