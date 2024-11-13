@@ -14,6 +14,7 @@ use crate::generate::Generate;
 use crate::{private, Event};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Jobs(IndexMap<String, Job>);
 impl Jobs {
@@ -131,6 +132,12 @@ impl Workflow {
 
     /// Adds an event to the workflow.
     pub fn add_event<T: Into<Event>>(mut self, that: T) -> Self {
+        if let Some(mut this) = self.on.take() {
+            this.merge(that.into());
+            self.on = Some(this);
+        } else {
+            self.on = Some(that.into());
+        }
         if let Some(mut this) = self.on.take() {
             this.merge(that.into());
             self.on = Some(this);
@@ -373,6 +380,7 @@ impl Input {
 
 /// Represents a step value in the workflow.
 #[allow(clippy::duplicated_attributes)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 #[setters(

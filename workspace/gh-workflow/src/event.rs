@@ -1,3 +1,5 @@
+#![allow(clippy::needless_update)]
+
 use std::collections::HashMap;
 
 use derive_setters::Setters;
@@ -146,6 +148,7 @@ pub enum CheckSuiteType {
 }
 
 /// Configuration for check suite events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct CheckSuite {
@@ -217,6 +220,7 @@ impl Delete {
 
 /// Types of deployment events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#deployment
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct Deployment {
@@ -235,6 +239,7 @@ impl Deployment {
 
 /// Types of deployment status events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#deployment_status
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct DeploymentStatus {
@@ -285,6 +290,7 @@ pub enum DiscussionType {
 }
 
 /// Configuration for discussion events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 pub struct Discussion {
     /// Filter on specific discussion event types
@@ -314,6 +320,7 @@ pub enum DiscussionCommentType {
 }
 
 /// Configuration for discussion comment events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 pub struct DiscussionComment {
     /// Filter on specific discussion comment event types
@@ -398,6 +405,7 @@ pub enum IssuesType {
 }
 
 /// Configuration for issue events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct Issues {
@@ -428,6 +436,7 @@ pub enum LabelType {
 }
 
 /// Configuration for label events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct Label {
@@ -549,6 +558,7 @@ pub enum PullRequestReviewType {
 }
 
 /// Configuration for pull request review events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct PullRequestReview {
@@ -661,6 +671,7 @@ pub enum RegistryPackageType {
 }
 
 /// Configuration for registry package events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct RegistryPackage {
@@ -699,6 +710,7 @@ pub enum ReleaseType {
 }
 
 /// Configuration for release events
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct Release {
@@ -817,6 +829,7 @@ pub struct WorkflowCallSecret {
 
 /// Configuration for workflow dispatch events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch
+
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
 #[setters(strip_option, into)]
 pub struct WorkflowDispatch {
