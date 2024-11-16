@@ -1,3 +1,4 @@
+use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -50,6 +51,11 @@ impl Generate {
                 Err(Error::MissingWorkflowFile(path.clone()))
             }
         } else {
+            std::fs::create_dir_all(path.parent().ok_or(Error::IO(std::io::Error::new(
+                ErrorKind::Other,
+                "Invalid parent dir(s) path",
+            )))?)?;
+
             std::fs::write(path.clone(), content)?;
             println!(
                 "Generated workflow file: {}",
