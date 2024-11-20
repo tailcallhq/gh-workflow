@@ -31,6 +31,11 @@ fn generate() {
                 .nightly()
                 .args("--all-features --workspace -- -D warnings")
                 .name("Cargo Clippy"),
+        )
+        .add_step(
+            AutoCommit::new("lint changes")
+                .name("Auto Commit")
+                .push(true),
         );
 
     let event = Event::default()

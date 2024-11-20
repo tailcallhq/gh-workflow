@@ -22,6 +22,9 @@ pub struct AutoCommit {
 
     /// Files to include in the commit. If None, all changes are committed.
     pub files: Option<Vec<String>>,
+
+    /// Whether to push the changes after committing. Defaults to false if not set.
+    pub push: Option<bool>,
 }
 
 impl AutoCommit {
@@ -34,6 +37,7 @@ impl AutoCommit {
             user_name: Default::default(),
             user_email: Default::default(),
             files: Default::default(),
+            push: Default::default(),
         }
     }
 }
@@ -65,6 +69,11 @@ impl From<AutoCommit> for Step<Run> {
 
         // Add the commit command
         commands.push(format!("git commit -m \"{}\" || echo 'No changes to commit'", value.message));
+
+        // Add push command if enabled
+        if value.push.unwrap_or(false) {
+            commands.push("git push".to_string());
+        }
 
         // Combine all commands into a single shell script
         let full_command = commands.join(" && ");
