@@ -1,3 +1,4 @@
+mod auto_commit;
 mod cargo;
 pub mod error;
 mod event;
@@ -7,6 +8,7 @@ mod rust_flag;
 pub mod toolchain;
 pub(crate) mod workflow;
 
+pub use auto_commit::*;
 pub use cargo::*;
 pub use event::*;
 pub use rust_flag::*;
