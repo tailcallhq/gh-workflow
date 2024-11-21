@@ -2,6 +2,22 @@ use derive_setters::Setters;
 
 use crate::{Run, Step};
 
+/// Represents branches that should be skipped for auto-commits
+#[derive(Clone, Default)]
+pub struct SkipBranches(Vec<String>);
+
+impl SkipBranches {
+    pub fn contains(&self, branch: &str) -> bool {
+        self.0.iter().any(|b| branch == b)
+    }
+}
+
+impl From<Vec<String>> for SkipBranches {
+    fn from(branches: Vec<String>) -> Self {
+        Self(branches)
+    }
+}
+
 #[derive(Setters)]
 #[setters(strip_option, into)]
 pub struct AutoCommit {
@@ -25,6 +41,9 @@ pub struct AutoCommit {
 
     /// Whether to push the changes after committing. Defaults to false if not set.
     pub push: Option<bool>,
+
+    /// Branches where auto-commit should be skipped. Defaults to ["main"] if not set.
+    pub skip_branches: Option<SkipBranches>,
 }
 
 impl Default for AutoCommit {
@@ -37,6 +56,7 @@ impl Default for AutoCommit {
             user_email: Some("github-actions@github.com".into()),
             files: Default::default(),
             push: Default::default(),
+            skip_branches: Some(vec!["main".to_string()].into()),
         }
     }
 }
@@ -52,6 +72,7 @@ impl AutoCommit {
             user_email: Default::default(),
             files: Default::default(),
             push: Default::default(),
+            skip_branches: Default::default(),
         }
     }
 }
@@ -59,6 +80,14 @@ impl AutoCommit {
 impl From<AutoCommit> for Step<Run> {
     fn from(value: AutoCommit) -> Self {
         let mut commands = Vec::new();
+
+        // Add type-safe branch check
+        let skip_branches = value.skip_branches.unwrap_or_else(|| vec!["main".to_string()].into());
+        let branches_str = skip_branches.0.join("|");
+        commands.push(format!(
+            "[[ ! $GITHUB_REF =~ ^refs/heads/({branches_str})$ ]] || \
+             (echo 'Skipping auto-commit on protected branch' && exit 0)"
+        ));
 
         // Configure Git user name
         let user_name = value.user_name.unwrap_or_else(|| "github-actions".to_string());
