@@ -71,8 +71,88 @@ impl<A> Display for Expr<A> {
 #[derive(Expr)]
 #[allow(dead_code)]
 pub struct Github {
+    /// The name of the action currently running, or the id of a step.
     action: String,
+    /// The path where an action is located. This property is only supported in composite actions.
     action_path: String,
+    /// For a step executing an action, this is the ref of the action being executed.
+    action_ref: String,
+    /// For a step executing an action, this is the owner and repository name of the action.
+    action_repository: String,
+    /// For a composite action, the current result of the composite action.
+    action_status: String,
+    /// The username of the user that triggered the initial workflow run.
+    actor: String,
+    /// The account ID of the person or app that triggered the initial workflow run.
+    actor_id: String,
+    /// The URL of the GitHub REST API.
+    api_url: String,
+    /// The base_ref or target branch of the pull request in a workflow run.
+    base_ref: String,
+    /// Path on the runner to the file that sets environment variables from workflow commands.
+    env: String,
+    /// The full event webhook payload.
+    event: serde_json::Value,
+    /// The name of the event that triggered the workflow run.
+    event_name: String,
+    /// The path to the file on the runner that contains the full event webhook payload.
+    event_path: String,
+    /// The URL of the GitHub GraphQL API.
+    graphql_url: String,
+    /// The head_ref or source branch of the pull request in a workflow run.
+    head_ref: String,
+    /// The job id of the current job.
+    job: String,
+    /// The path of the repository.
+    path: String,
+    /// The short ref name of the branch or tag that triggered the workflow run.
+    ref_name: String,
+    /// true if branch protections are configured for the ref that triggered the workflow run.
+    ref_protected: bool,
+    /// The type of ref that triggered the workflow run. Valid values are branch or tag.
+    ref_type: String,
+    /// The owner and repository name.
+    repository: String,
+    /// The ID of the repository.
+    repository_id: String,
+    /// The repository owner's username.
+    repository_owner: String,
+    /// The repository owner's account ID.
+    repository_owner_id: String,
+    /// The Git URL to the repository.
+    repository_url: String,
+    /// The number of days that workflow run logs and artifacts are kept.
+    retention_days: String,
+    /// A unique number for each workflow run within a repository.
+    run_id: String,
+    /// A unique number for each run of a particular workflow in a repository.
+    run_number: String,
+    /// A unique number for each attempt of a particular workflow run in a repository.
+    run_attempt: String,
+    /// The source of a secret used in a workflow.
+    secret_source: String,
+    /// The URL of the GitHub server.
+    server_url: String,
+    /// The commit SHA that triggered the workflow.
+    sha: String,
+    /// A token to authenticate on behalf of the GitHub App installed on your repository.
+    token: String,
+    /// The username of the user that initiated the workflow run.
+    triggering_actor: String,
+    /// The name of the workflow.
+    workflow: String,
+    /// The ref path to the workflow.
+    workflow_ref: String,
+    /// The commit SHA for the workflow file.
+    workflow_sha: String,
+    /// The default working directory on the runner for steps.
+    workspace: String,
+}
+
+impl Expr<Github> {
+    pub fn ref_(&self) -> Expr<String> {
+        self.select("ref")
+    }
 }
 
 #[cfg(test)]
