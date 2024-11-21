@@ -6,8 +6,8 @@ edition = "2021"
 description = "A type-safe GitHub Actions workflow generator"
 license = "Apache-2.0"
 documentation = "https://docs.rs/gh-workflow"
-homepage = "https://github.com/tailcallhq/rust-gh-workflow"
-repository = "https://github.com/tailcallhq/rust-gh-workflow"
+homepage = "https://github.com/tailcallhq/gh-workflow"
+repository = "https://github.com/tailcallhq/gh-workflow"
 
 [dependencies]
 async-trait = "0.1.83"
