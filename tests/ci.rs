@@ -32,11 +32,7 @@ fn generate() {
                 .args("--all-features --workspace -- -D warnings")
                 .name("Cargo Clippy"),
         )
-        .add_step(
-            AutoCommit::new("lint changes")
-                .name("Auto Commit")
-                .push(true),
-        );
+        .add_step(AutoCommit::default().push(true));
 
     let event = Event::default()
         .push(Push::default().add_branch("main"))

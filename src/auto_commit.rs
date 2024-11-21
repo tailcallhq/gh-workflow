@@ -27,13 +27,27 @@ pub struct AutoCommit {
     pub push: Option<bool>,
 }
 
+impl Default for AutoCommit {
+    fn default() -> Self {
+        AutoCommit {
+            message: "lint changes.".into(),
+            id: Default::default(),
+            name: Some("Auto Commit".into()),
+            user_name: Some("github-actions".into()),
+            user_email: Some("github-actions@github.com".into()),
+            files: Default::default(),
+            push: Default::default(),
+        }
+    }
+}
+
 impl AutoCommit {
     /// Creates a new `AutoCommit` with the specified commit message.
     pub fn new<T: ToString>(msg: T) -> AutoCommit {
         AutoCommit {
             message: msg.to_string(),
             id: Default::default(),
-            name: Default::default(),
+            name: Some("Auto Commit".into()),
             user_name: Default::default(),
             user_email: Default::default(),
             files: Default::default(),
