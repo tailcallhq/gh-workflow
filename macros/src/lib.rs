@@ -28,7 +28,7 @@ pub fn derive_expr(input: TokenStream) -> TokenStream {
         let field_name_str = field_name.as_ref().unwrap().to_string();
         quote! {
             pub fn #field_name(&self) -> Expr<#field_type> {
-                self.get::<#field_type>(#field_name_str)
+                self.select::<#field_type>(#field_name_str)
             }
         }
     });

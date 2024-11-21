@@ -6,7 +6,7 @@ use gh_workflow_macros::Expr;
 enum Step {
     #[default]
     Root,
-    Get {
+    Select {
         name: String,
         object: Box<Step>,
     },
@@ -22,10 +22,10 @@ impl<A> Expr<A> {
         Expr { marker: PhantomData, step: Step::Root }
     }
 
-    fn get<B>(&self, path: impl Into<String>) -> Expr<B> {
+    fn select<B>(&self, path: impl Into<String>) -> Expr<B> {
         Expr {
             marker: PhantomData,
-            step: Step::Get { name: path.into(), object: Box::new(self.step.clone()) },
+            step: Step::Select { name: path.into(), object: Box::new(self.step.clone()) },
         }
     }
 }
@@ -37,7 +37,7 @@ impl<A> ToString for Expr<A> {
         loop {
             match step {
                 Step::Root => break,
-                Step::Get { name, object } => {
+                Step::Select { name, object } => {
                     parts.push(name.clone());
                     step = object;
                 }
