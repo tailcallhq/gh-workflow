@@ -3,6 +3,9 @@ extern crate proc_macro;
 mod cargo;
 pub mod error;
 mod event;
+
+// TODO: expose this publicly eventually
+#[allow(dead_code)]
 mod expr;
 pub mod generate;
 pub mod release_plz;
@@ -12,7 +15,6 @@ pub(crate) mod workflow;
 
 pub use cargo::*;
 pub use event::*;
-pub use expr::*;
 pub use rust_flag::*;
 pub use workflow::*;
 

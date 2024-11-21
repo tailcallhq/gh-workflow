@@ -20,7 +20,7 @@ impl Generate {
     }
 
     fn check_file(&self, path: &PathBuf, content: &str) -> Result<()> {
-        if let Ok(prev) = std::fs::read_to_string(&path) {
+        if let Ok(prev) = std::fs::read_to_string(path) {
             if content != prev {
                 Err(Error::OutdatedWorkflow)
             } else {
