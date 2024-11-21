@@ -19,6 +19,18 @@ impl Generate {
         Self { workflow, name: "ci.yml".to_string() }
     }
 
+    fn check_file(&self, path: &PathBuf, content: &str) -> Result<()> {
+        if let Ok(prev) = std::fs::read_to_string(&path) {
+            if content != prev {
+                Err(Error::OutdatedWorkflow)
+            } else {
+                Ok(())
+            }
+        } else {
+            Err(Error::MissingWorkflowFile(path.clone()))
+        }
+    }
+
     pub fn generate(&self) -> Result<()> {
         let comment = include_str!("./comment.yml");
 
@@ -34,34 +46,35 @@ impl Generate {
             .join("workflows")
             .join(self.name.as_str());
 
+        let path = path.canonicalize()?;
+
         let content = format!("{}\n{}", comment, self.workflow.to_string()?);
 
+        let result = self.check_file(&path, &content);
+
         if std::env::var("CI").is_ok() {
-            if let Ok(prev) = std::fs::read_to_string(&path) {
-                if content != prev {
-                    Err(Error::OutdatedWorkflow)
-                } else {
-                    println!(
-                        "Workflow file is up-to-date: {}",
-                        path.canonicalize()?.display()
-                    );
+            result
+        } else {
+            match result {
+                Ok(()) => {
+                    println!("Workflow file is up-to-date: {}", path.display());
                     Ok(())
                 }
-            } else {
-                Err(Error::MissingWorkflowFile(path.clone()))
+                Err(Error::OutdatedWorkflow) => {
+                    std::fs::write(path.clone(), content)?;
+                    println!("Updated workflow file: {}", path.display());
+                    Ok(())
+                }
+                Err(Error::MissingWorkflowFile(path)) => {
+                    std::fs::create_dir_all(path.parent().ok_or(Error::IO(
+                        std::io::Error::new(ErrorKind::Other, "Invalid parent dir(s) path"),
+                    ))?)?;
+                    std::fs::write(path.clone(), content)?;
+                    println!("Generated workflow file: {}", path.display());
+                    Ok(())
+                }
+                Err(e) => Err(e),
             }
-        } else {
-            std::fs::create_dir_all(path.parent().ok_or(Error::IO(std::io::Error::new(
-                ErrorKind::Other,
-                "Invalid parent dir(s) path",
-            )))?)?;
-
-            std::fs::write(path.clone(), content)?;
-            println!(
-                "Generated workflow file: {}",
-                path.canonicalize()?.display()
-            );
-            Ok(())
         }
     }
 }
