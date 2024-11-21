@@ -31,6 +31,11 @@ fn generate() {
                 .nightly()
                 .args("--all-features --workspace -- -D warnings")
                 .name("Cargo Clippy"),
+        )
+        .add_step(
+            Step::from(AutoCommit::default().push(true)).if_condition(Expression::new(
+                "${{ github.event_name == 'pull_request' }}",
+            )),
         );
 
     let event = Event::default()
