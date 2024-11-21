@@ -48,7 +48,8 @@ jobs:
     - name: Cargo Clippy
       run: cargo +nightly clippy --all-features --workspace -- -D warnings
     - name: Auto Commit
-      run: '[[ ! $GITHUB_REF =~ ^refs/heads/(main)$ ]] || (echo ''Skipping auto-commit on protected branch'' && exit 0) && git config --global user.name ''github-actions'' && git config --global user.email ''github-actions@github.com'' && git add . && git commit -m "lint changes." || echo ''No changes to commit'' && git push'
+      if: ${{ github.event_name == 'pull_request' }}
+      run: git config --global user.name 'github-actions' && git config --global user.email 'github-actions@github.com' && git add . && git commit -m "lint changes." || echo 'No changes to commit' && git push
   release:
     needs: build
     name: Release
