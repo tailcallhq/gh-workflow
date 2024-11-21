@@ -55,6 +55,7 @@ impl<A> Display for Expr<A> {
                             write!(f, "{}", name.replace('"', ""))?;
                         } else {
                             stack.push(Step::select(name.as_str()));
+                            // TODO: this is a hack to insert a `.` between the two steps
                             stack.push(Step::select("."));
                             stack.push(*object);
                         }
