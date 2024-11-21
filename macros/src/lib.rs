@@ -39,7 +39,7 @@ pub fn derive_expr(input: TokenStream) -> TokenStream {
             #(#methods)*
 
             pub fn #ctor_id() -> Self {
-                Expr::<Github>::new().get(stringify!(#ctor_name))
+                Expr::<Github>::new().select(stringify!(#ctor_name))
             }
         }
     };
