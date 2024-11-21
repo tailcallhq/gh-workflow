@@ -129,6 +129,7 @@ dependencies = [
  "async-trait",
  "derive_more",
  "derive_setters",
+ "gh-workflow-macros",
  "indexmap",
  "insta",
  "merge",
@@ -137,6 +138,15 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "strum_macros",
+]
+
+[[package]]
+name = "gh-workflow-macros"
+version = "0.1.0"
+dependencies = [
+ "heck",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
