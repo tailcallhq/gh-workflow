@@ -1,20 +1,26 @@
-use std::marker::PhantomData;
+use std::{fmt::Display, marker::PhantomData, rc::Rc};
 
 use gh_workflow_macros::Expr;
+
+pub struct Expr<A> {
+    marker: PhantomData<A>,
+    step: Step,
+}
 
 #[derive(Default, Clone)]
 enum Step {
     #[default]
     Root,
     Select {
-        name: String,
+        name: Rc<String>,
         object: Box<Step>,
     },
 }
 
-pub struct Expr<A> {
-    marker: PhantomData<A>,
-    step: Step,
+impl Step {
+    fn select(name: impl Into<String>) -> Step {
+        Step::Select { name: Rc::new(name.into()), object: Box::new(Step::Root) }
+    }
 }
 
 impl<A> Expr<A> {
@@ -25,33 +31,44 @@ impl<A> Expr<A> {
     fn select<B>(&self, path: impl Into<String>) -> Expr<B> {
         Expr {
             marker: PhantomData,
-            step: Step::Select { name: path.into(), object: Box::new(self.step.clone()) },
+            step: Step::Select {
+                name: Rc::new(path.into()),
+                object: Box::new(self.step.clone()),
+            },
         }
     }
 }
-impl<A> ToString for Expr<A> {
-    fn to_string(&self) -> String {
-        let mut step = &self.step;
-        let mut parts = Vec::new();
+
+impl<A> Display for Expr<A> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut stack: Vec<Step> = vec![self.step.clone()];
+
+        write!(f, "{{{{ ")?;
 
         loop {
-            match step {
-                Step::Root => break,
-                Step::Select { name, object } => {
-                    parts.push(name.clone());
-                    step = object;
-                }
+            match stack.pop() {
+                None => break,
+                Some(step) => match step {
+                    Step::Root => break,
+                    Step::Select { name, object } => {
+                        if matches!(*object, Step::Root) {
+                            write!(f, "{}", name.replace('"', ""))?;
+                        } else {
+                            stack.push(Step::select(name.as_str()));
+                            stack.push(Step::select("."));
+                            stack.push(*object);
+                        }
+                    }
+                },
             }
         }
 
-        parts.reverse();
-        let path = parts.join(".").replace('"', "");
-
-        format!("{{{{ {} }}}}", path)
+        write!(f, " }}}}")
     }
 }
 
 #[derive(Expr)]
+#[allow(dead_code)]
 pub struct Github {
     action: String,
     action_path: String,
