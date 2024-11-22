@@ -4,9 +4,13 @@ use toolchain::Toolchain;
 
 #[test]
 fn generate() {
+    let lint_mode_condition =
+        "contains(github.event.pull_request.labels.*.name, 'ci: lintfix') && 'fix' || 'check'";
+
     let flags = RustFlags::deny("warnings");
 
     let build = Job::new("Build and Test")
+        .add_env(("LINT_MODE", format!("${{{{{}}}}}", lint_mode_condition)))
         .add_step(Step::checkout())
         .add_step(
             Toolchain::default()
@@ -16,30 +20,55 @@ fn generate() {
                 .add_fmt(),
         )
         .add_step(
+            Cargo::new("fmt")
+                .nightly()
+                .args("--check")
+                .if_condition("env.LINT_MODE == 'check'")
+                .name("Cargo Fmt"),
+        )
+        .add_step(
             Cargo::new("test")
-                .args("--all-features --workspace")
+                .args("--all --all-targets --all-features")
+                .if_condition("env.LINT_MODE == 'fix'")
                 .name("Cargo Test"),
         )
         .add_step(
             Cargo::new("fmt")
                 .nightly()
-                .args("--check")
+                .args("--all")
+                .if_condition("env.LINT_MODE == 'fix'")
                 .name("Cargo Fmt"),
         )
         .add_step(
             Cargo::new("clippy")
                 .nightly()
-                .args("--all-features --workspace -- -D warnings")
+                .args("--all-features --workspace --fix --allow-staged --allow-dirty")
                 .name("Cargo Clippy"),
+        )
+        .add_step(
+            Cargo::new("test")
+                .args("--all-features --workspace")
+                .if_condition("env.LINT_MODE == 'check'")
+                .name("Cargo Test"),
+        )
+        .add_step(
+            Step::uses(
+                "autofix-ci",
+                "action",
+                "ff86a557419858bb967097bfc916833f5647fa8c",
+            )
+            .if_condition(Expression::new("env.LINT_MODE == 'fix'"))
+            .name("Commit and push if changed"),
         );
 
     let event = Event::default()
         .push(Push::default().add_branch("main"))
-        .pull_request_target(
-            PullRequestTarget::default()
+        .pull_request(
+            PullRequest::default()
                 .add_type(PullRequestType::Opened)
                 .add_type(PullRequestType::Synchronize)
                 .add_type(PullRequestType::Reopened)
+                .add_type(PullRequestType::Labeled)
                 .add_branch("main"),
         );
 
