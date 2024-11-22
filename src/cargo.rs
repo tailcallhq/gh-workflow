@@ -1,7 +1,7 @@
 use derive_setters::Setters;
 
 use crate::toolchain::Version;
-use crate::{Run, Step};
+use crate::{Expression, Run, Step};
 
 #[derive(Setters)]
 #[setters(strip_option, into)]
@@ -20,6 +20,7 @@ pub struct Cargo {
 
     /// Arguments to be passed to the cargo command.
     pub args: Option<String>,
+    pub if_condition: Option<String>,
 }
 
 impl Cargo {
@@ -30,6 +31,7 @@ impl Cargo {
             name: Default::default(),
             toolchain: Default::default(),
             args: Default::default(),
+            if_condition: None,
         }
     }
 
@@ -63,6 +65,10 @@ impl From<Cargo> for Step<Run> {
 
         if let Some(name) = value.name {
             step = step.name(name);
+        }
+        
+        if let Some(condition) = value.if_condition { 
+            step = step.if_condition(Expression::new(condition));
         }
 
         step

@@ -344,6 +344,12 @@ impl From<IndexMap<String, Value>> for Input {
     }
 }
 
+impl From<Vec<(&str, &str)>> for Input {
+    fn from(value: Vec<(&str, &str)>) -> Self {
+        Input(value.into_iter().map(|(k, v)| (k.to_string(), Value::String(v.to_string()))).collect())
+    }
+}
+
 impl Merge for Input {
     /// Merges another `Input` into this one.
     fn merge(&mut self, other: Self) {
