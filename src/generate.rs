@@ -46,8 +46,6 @@ impl Generate {
             .join("workflows")
             .join(self.name.as_str());
 
-        let path = path.canonicalize()?;
-
         let content = format!("{}\n{}", comment, self.workflow.to_string()?);
 
         let result = self.check_file(&path, &content);
