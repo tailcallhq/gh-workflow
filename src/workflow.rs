@@ -449,6 +449,21 @@ pub struct StepValue {
     pub artifacts: Option<Artifacts>,
 }
 
+pub trait IntoVersion {
+    fn into_version(self) -> String;
+}
+
+impl<A: ToString> IntoVersion for A {
+    fn into_version(self) -> String {
+        let val = self.to_string();
+        if let Ok(val) = val.parse::<usize>() {
+            format!("v{val}")
+        } else {
+            val
+        }
+    }
+}
+
 impl StepValue {
     /// Creates a new `StepValue` that runs a command.
     pub fn run<T: ToString>(cmd: T) -> Self {
@@ -456,17 +471,17 @@ impl StepValue {
     }
 
     /// Creates a new `StepValue` that uses an action.
-    pub fn uses<Owner: ToString, Repo: ToString, Version: ToString>(
+    pub fn uses<Owner: ToString, Repo: ToString, Version: IntoVersion>(
         owner: Owner,
         repo: Repo,
         version: Version,
     ) -> Self {
         StepValue {
             uses: Some(format!(
-                "{}/{}@v{}",
+                "{}/{}@{}",
                 owner.to_string(),
                 repo.to_string(),
-                version.to_string()
+                version.into_version()
             )),
             ..Default::default()
         }
@@ -788,6 +803,12 @@ pub struct RetryDefaults {
 /// Represents an expression used in conditions.
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub struct Expression(String);
+
+impl<T: ToString> From<T> for Expression {
+    fn from(value: T) -> Self {
+        Expression(value.to_string())
+    }
+}
 
 impl Expression {
     /// Creates a new `Expression` from a string.

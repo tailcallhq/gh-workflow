@@ -24,6 +24,7 @@ on:
     - opened
     - synchronize
     - reopened
+    - labeled
     branches:
     - main
   push:
@@ -33,6 +34,8 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    env:
+      LINT_MODE: '${{contains(github.event.pull_request.labels.*.name, ''ci: lintfix'') && ''fix'' || ''check''}}'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -41,12 +44,23 @@ jobs:
       with:
         toolchain: stable, nightly
         components: clippy, rustfmt
-    - name: Cargo Test
-      run: cargo test --all-features --workspace
     - name: Cargo Fmt
+      if: env.LINT_MODE == 'check'
       run: cargo +nightly fmt --check
+    - name: Cargo Test
+      if: env.LINT_MODE == 'fix'
+      run: cargo test --all --all-targets --all-features
+    - name: Cargo Fmt
+      if: env.LINT_MODE == 'fix'
+      run: cargo +nightly fmt --all
     - name: Cargo Clippy
-      run: cargo +nightly clippy --all-features --workspace -- -D warnings
+      run: cargo +nightly clippy --all-features --workspace --fix --allow-staged --allow-dirty
+    - name: Cargo Test
+      if: env.LINT_MODE == 'check'
+      run: cargo test --all-features --workspace
+    - name: Commit and push if changed
+      if: env.LINT_MODE == 'fix'
+      uses: autofix-ci/action@ff86a557419858bb967097bfc916833f5647fa8c
   release:
     needs:
     - build
@@ -63,4 +77,4 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
     - name: Release Plz
-      uses: MarcoIeni/release-plz-action@v0.5
+      uses: MarcoIeni/release-plz-action@0.5
