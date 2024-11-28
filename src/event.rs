@@ -10,7 +10,7 @@ use crate::is_default;
 
 /// Represents all possible webhook events that can trigger a workflow
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
-#[derive(Default, Debug, Clone, Deserialize, Serialize, Merge, Setters)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Merge, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Event {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,7 +93,7 @@ pub enum BranchProtectionRuleType {
 }
 
 /// Configuration for branch protection rule events
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct BranchProtectionRule {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -123,7 +123,7 @@ pub enum CheckRunType {
     RequestedAction,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct CheckRun {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -149,7 +149,7 @@ pub enum CheckSuiteType {
 
 /// Configuration for check suite events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct CheckSuite {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -166,7 +166,7 @@ impl CheckSuite {
 
 /// Configuration for create events (branch or tag creation)
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#create
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Create {
     /// Filter on specific branch names
@@ -193,7 +193,7 @@ impl Create {
 
 /// Configuration for delete events (branch or tag deletion)
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#delete
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Delete {
     /// Filter on specific branch names
@@ -221,7 +221,7 @@ impl Delete {
 /// Types of deployment events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#deployment
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Deployment {
     /// Filter on specific branch names
@@ -240,7 +240,7 @@ impl Deployment {
 /// Types of deployment status events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#deployment_status
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct DeploymentStatus {
     /// Filter on specific deployment states
@@ -291,7 +291,7 @@ pub enum DiscussionType {
 
 /// Configuration for discussion events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 pub struct Discussion {
     /// Filter on specific discussion event types
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -321,7 +321,7 @@ pub enum DiscussionCommentType {
 
 /// Configuration for discussion comment events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 pub struct DiscussionComment {
     /// Filter on specific discussion comment event types
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -338,7 +338,7 @@ impl DiscussionComment {
 
 /// Configuration for issue comment events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#issue_comment
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 pub struct IssueComment {
     /// Filter on specific issue comment event types
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -406,7 +406,7 @@ pub enum IssuesType {
 
 /// Configuration for issue events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Issues {
     /// Filter on specific issue event types
@@ -437,7 +437,7 @@ pub enum LabelType {
 
 /// Configuration for label events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Label {
     /// Filter on specific label event types
@@ -459,7 +459,7 @@ pub enum MergeGroupType {
     ChecksRequested,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct MergeGroup {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -483,7 +483,7 @@ pub enum MilestoneType {
     Deleted,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Milestone {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -516,7 +516,7 @@ pub enum PullRequestType {
     ReviewRequestRemoved,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct PullRequest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -559,7 +559,7 @@ pub enum PullRequestReviewType {
 
 /// Configuration for pull request review events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct PullRequestReview {
     /// Filter on specific pull request review event types
@@ -589,7 +589,7 @@ pub enum PullRequestReviewCommentType {
 }
 
 /// Configuration for pull request review comment events
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct PullRequestReviewComment {
     /// Filter on specific pull request review comment event types
@@ -607,7 +607,7 @@ impl PullRequestReviewComment {
 
 /// Configuration for pull request target events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct PullRequestTarget {
     /// Filter on specific pull request event types
@@ -634,7 +634,7 @@ impl PullRequestTarget {
 
 /// Configuration for push events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Push {
     /// Filter on specific branch names
@@ -672,7 +672,7 @@ pub enum RegistryPackageType {
 
 /// Configuration for registry package events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct RegistryPackage {
     /// Filter on specific registry package event types
@@ -711,7 +711,7 @@ pub enum ReleaseType {
 
 /// Configuration for release events
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Release {
     /// Filter on specific release event types
@@ -727,7 +727,7 @@ impl Release {
     }
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct RepositoryDispatch {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -741,7 +741,7 @@ impl RepositoryDispatch {
     }
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Schedule {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -755,7 +755,7 @@ impl Schedule {
     }
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct Watch {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -771,7 +771,7 @@ impl Watch {
 
 /// Configuration for workflow call events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_call
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowCall {
     /// Inputs for the workflow call
@@ -786,7 +786,7 @@ pub struct WorkflowCall {
 }
 
 /// Configuration for workflow call input
-#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowCallInput {
     /// Description of the input
@@ -804,7 +804,7 @@ pub struct WorkflowCallInput {
 }
 
 /// Configuration for workflow call output
-#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowCallOutput {
     /// Description of the output
@@ -816,7 +816,7 @@ pub struct WorkflowCallOutput {
 }
 
 /// Configuration for workflow call secret
-#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowCallSecret {
     /// Description of the secret
@@ -830,7 +830,7 @@ pub struct WorkflowCallSecret {
 /// Configuration for workflow dispatch events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowDispatch {
     /// Inputs for the workflow dispatch
@@ -839,7 +839,7 @@ pub struct WorkflowDispatch {
 }
 
 /// Configuration for workflow dispatch input
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowDispatchInput {
     /// Description of the input
@@ -870,7 +870,7 @@ pub enum WorkflowRunType {
 }
 
 /// Configuration for workflow run events
-#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
 #[setters(strip_option, into)]
 pub struct WorkflowRun {
     /// Filter on specific workflow run event types

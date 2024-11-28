@@ -48,7 +48,8 @@ jobs:
     - name: Cargo Clippy
       run: cargo +nightly clippy --all-features --workspace -- -D warnings
   release:
-    needs: build
+    needs:
+    - build
     name: Release
     runs-on: ubuntu-latest
     permissions:
