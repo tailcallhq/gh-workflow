@@ -36,17 +36,37 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        token: '{{ secrets.GITHUB_TOKEN }}'
+        fetch-depth: '0'
     - name: Setup Rust Toolchain
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable, nightly
         components: clippy, rustfmt
+    - id: check-labels
+      name: Check PR Labels
+      uses: actions-ecosystem/action-get-labeled@v2
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: false
     - name: Cargo Test
       run: cargo test --all-features --workspace
     - name: Cargo Fmt
+      if: 'github.event_name == ''pull_request'' && !contains(steps.Check_PR_Labels.outputs.labels, ''ci: lintfix'')'
       run: cargo +nightly fmt --check
+    - name: Cargo Fmt
+      if: 'github.event_name == ''pull_request'' && contains(steps.Check_PR_Labels.outputs.labels, ''ci: lintfix'')'
+      run: cargo +nightly fmt --all
     - name: Cargo Clippy
+      if: 'github.event_name == ''pull_request'' && !contains(steps.Check_PR_Labels.outputs.labels, ''ci: lintfix'')'
       run: cargo +nightly clippy --all-features --workspace -- -D warnings
+    - name: Cargo Clippy
+      if: 'github.event_name == ''pull_request'' && contains(steps.Check_PR_Labels.outputs.labels, ''ci: lintfix'')'
+      run: cargo +nightly clippy --fix --allow-dirty
+    - name: Commit and Push Fixes
+      if: 'github.event_name == ''pull_request'' && !contains(steps.Check_PR_Labels.outputs.labels, ''ci: lintfix'')'
+      run: git config user.name 'github-actions[bot]' && git config user.email 'github-actions[bot]@users.noreply.github.com' && git add . && git commit -m 'Apply lint fixes (fmt + clippy)' && git push origin HEAD:${{ github.event.pull_request.head.ref }}
   release:
     needs:
     - build
