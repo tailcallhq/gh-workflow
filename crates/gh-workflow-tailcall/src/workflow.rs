@@ -21,11 +21,14 @@ pub struct Workflow {
 
     /// Name of the workflow.
     pub name: String,
+
+    /// When enabled, a benchmark job is added to the workflow.
+    pub benchmarks: bool,
 }
 
 impl Default for Workflow {
     fn default() -> Self {
-        Self { auto_release: false, name: "CI".into() }
+        Self { auto_release: false, name: "CI".into(), benchmarks: false }
     }
 }
 
@@ -61,7 +64,7 @@ impl From<Workflow> for GHWorkflow {
         let cond = is_main.and(is_push);
 
         // Jobs
-        let build = build_and_test();
+        let build = build_and_test(&value);
         let mut workflow = GHWorkflow::new(value.name)
             .add_env(flags)
             .on(event)
@@ -115,8 +118,8 @@ fn release_job(cond: &Context<bool>, build: &Job, permissions: &Permissions) -> 
         .add_step(Release::default().command(Command::Release))
 }
 
-fn build_and_test() -> Job {
-    Job::new("Build and Test")
+fn build_and_test(value: &Workflow) -> Job {
+    let mut job = Job::new("Build and Test")
         .permissions(Permissions::default().contents(Level::Read))
         .add_step(Step::checkout())
         .add_step(
@@ -142,5 +145,15 @@ fn build_and_test() -> Job {
                 .nightly()
                 .args("--all-features --workspace -- -D warnings")
                 .name("Cargo Clippy"),
-        )
+        );
+
+    if value.benchmarks {
+        job = job.add_step(
+            Cargo::new("bench")
+                .args("--workspace")
+                .name("Cargo Bench"),
+        );
+    }
+
+    job
 }
