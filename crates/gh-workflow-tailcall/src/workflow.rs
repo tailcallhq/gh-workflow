@@ -21,11 +21,14 @@ pub struct Workflow {
 
     /// Name of the workflow.
     pub name: String,
+
+    /// When enabled, auto-commits lint and fmt fixes on PRs.
+    pub auto_fix_lint_fmt: bool,
 }
 
 impl Default for Workflow {
     fn default() -> Self {
-        Self { auto_release: false, name: "CI".into() }
+        Self { auto_release: false, name: "CI".into(), auto_fix_lint_fmt: false }
     }
 }
 
@@ -80,8 +83,34 @@ impl From<Workflow> for GHWorkflow {
                 .add_job("release-pr", release_pr);
         }
 
+        // Add auto-fix job if enabled
+        if value.auto_fix_lint_fmt {
+            let lint_and_fmt_fix = lint_and_fmt_fix_job();
+            workflow = workflow.add_job("auto-fix-lint-fmt", lint_and_fmt_fix);
+        }
+
         workflow
     }
+}
+
+fn lint_and_fmt_fix_job() -> Job {
+    Job::new("Auto Fix Lint and Fmt")
+        .cond(Context::github().event_name().eq("pull_request".into())) // Ensure it's a PR
+        .add_step(Step::checkout())
+        .add_step(
+            Toolchain::default()
+                .add_stable()
+                .add_nightly()
+                .add_fmt(),
+        )
+        .add_step(
+            Cargo::new("fmt")
+                .nightly()
+                .args("") // Run cargo fmt (without --check to fix)
+                .name("Cargo Fmt (Fix)"),
+        )
+        .add_step(Step::run("git add . && git commit -m 'fix: auto-fix lint and fmt'"))
+        .add_step(Step::run("git push"))
 }
 
 fn release_pr_job(cond: Context<bool>, build: &Job, permissions: Permissions) -> Job {
