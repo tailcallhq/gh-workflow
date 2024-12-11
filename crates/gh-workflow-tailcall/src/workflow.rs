@@ -41,12 +41,67 @@ impl Workflow {
 
     /// Converts the workflow into a Github workflow.
     pub fn to_github_workflow(&self) -> GHWorkflow {
-        self.clone().into()
+        let flags = RustFlags::deny("warnings");
+
+        let event = Event::default()
+            .push(Push::default().add_branch("main"))
+            .pull_request(
+                PullRequest::default()
+                    .add_type(PullRequestType::Opened)
+                    .add_type(PullRequestType::Synchronize)
+                    .add_type(PullRequestType::Reopened)
+                    .add_branch("main"),
+            );
+
+        let is_main = Context::github().ref_().eq("refs/heads/main".into());
+        let is_push = Context::github().event_name().eq("push".into());
+        let cond = is_main.and(is_push);
+
+        // Jobs
+        let build = self.build_and_test();
+        let permissions = Permissions::default()
+            .pull_requests(Level::Write)
+            .packages(Level::Write)
+            .contents(Level::Write);
+        let release = Job::new("Release")
+            .cond((&cond).clone())
+            .add_needs((&build).clone())
+            .add_env(Env::github())
+            .add_env(Env::new(
+                "CARGO_REGISTRY_TOKEN",
+                "${{ secrets.CARGO_REGISTRY_TOKEN }}",
+            ))
+            .permissions((&permissions).clone())
+            .add_step(Step::checkout())
+            .add_step(Release::default().command(Command::Release));
+
+        let release_pr = Job::new("Release PR")
+            .cond((&cond).clone())
+            .concurrency(
+                Concurrency::new(Expression::new("release-${{github.ref}}"))
+                    .cancel_in_progress(false),
+            )
+            .add_needs((&build).clone())
+            .add_env(Env::github())
+            .add_env(Env::new(
+                "CARGO_REGISTRY_TOKEN",
+                "${{ secrets.CARGO_REGISTRY_TOKEN }}",
+            ))
+            .permissions(permissions)
+            .add_step(Step::checkout())
+            .add_step(Release::default().command(Command::ReleasePR));
+
+        GHWorkflow::new(self.name.clone())
+            .add_env(flags)
+            .on(event)
+            .add_job("build", (&build).clone())
+            .add_job_when(self.auto_release, "release", release)
+            .add_job_when(self.auto_release, "release-pr", release_pr)
     }
 
     /// Creates the "Build and Test" job for the workflow.
-    pub fn build_and_test(&self) -> Job {
-        let mut job = Job::new("Build and Test")
+    fn build_and_test(&self) -> Job {
+        Job::new("Build and Test")
             .permissions(Permissions::default().contents(Level::Read))
             .add_step(Step::checkout())
             .add_step(
@@ -72,89 +127,16 @@ impl Workflow {
                     .nightly()
                     .args("--all-features --workspace -- -D warnings")
                     .name("Cargo Clippy"),
-            );
-
-        if self.benchmarks {
-            job = job.add_step(
-                Cargo::new("bench")
-                    .args("--workspace")
-                    .name("Cargo Bench"),
-            );
-        }
-
-        job
+            )
+            .add_step_when(
+                self.benchmarks,
+                Cargo::new("bench").args("--workspace").name("Cargo Bench"),
+            )
     }
 }
 
 impl From<Workflow> for GHWorkflow {
     fn from(value: Workflow) -> Self {
-        let flags = RustFlags::deny("warnings");
-
-        let event = Event::default()
-            .push(Push::default().add_branch("main"))
-            .pull_request(
-                PullRequest::default()
-                    .add_type(PullRequestType::Opened)
-                    .add_type(PullRequestType::Synchronize)
-                    .add_type(PullRequestType::Reopened)
-                    .add_branch("main"),
-            );
-
-        let is_main = Context::github().ref_().eq("refs/heads/main".into());
-        let is_push = Context::github().event_name().eq("push".into());
-        let cond = is_main.and(is_push);
-
-        // Jobs
-        let build = value.build_and_test();
-        let mut workflow = GHWorkflow::new(value.name)
-            .add_env(flags)
-            .on(event)
-            .add_job("build", build.clone());
-
-        if value.auto_release {
-            let permissions = Permissions::default()
-                .pull_requests(Level::Write)
-                .packages(Level::Write)
-                .contents(Level::Write);
-
-            let release = release_job(&cond, &build, &permissions);
-            let release_pr = release_pr_job(cond, &build, permissions);
-            workflow = workflow
-                .add_job("release", release)
-                .add_job("release-pr", release_pr);
-        }
-
-        workflow
+        value.to_github_workflow()
     }
-}
-
-fn release_pr_job(cond: Context<bool>, build: &Job, permissions: Permissions) -> Job {
-    Job::new("Release PR")
-        .cond(cond.clone())
-        .concurrency(
-            Concurrency::new(Expression::new("release-${{github.ref}}")).cancel_in_progress(false),
-        )
-        .add_needs(build.clone())
-        .add_env(Env::github())
-        .add_env(Env::new(
-            "CARGO_REGISTRY_TOKEN",
-            "${{ secrets.CARGO_REGISTRY_TOKEN }}",
-        ))
-        .permissions(permissions)
-        .add_step(Step::checkout())
-        .add_step(Release::default().command(Command::ReleasePR))
-}
-
-fn release_job(cond: &Context<bool>, build: &Job, permissions: &Permissions) -> Job {
-    Job::new("Release")
-        .cond(cond.clone())
-        .add_needs(build.clone())
-        .add_env(Env::github())
-        .add_env(Env::new(
-            "CARGO_REGISTRY_TOKEN",
-            "${{ secrets.CARGO_REGISTRY_TOKEN }}",
-        ))
-        .permissions(permissions.clone())
-        .add_step(Step::checkout())
-        .add_step(Release::default().command(Command::Release))
 }

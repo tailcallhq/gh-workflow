@@ -101,6 +101,15 @@ impl Workflow {
         Ok(serde_yaml::to_string(self)?)
     }
 
+    /// Adds a job to the workflow when a condition is met.
+    pub fn add_job_when<T: ToString, J: Into<Job>>(self, cond: bool, id: T, job: J) -> Self {
+        if cond {
+            self.add_job(id, job)
+        } else {
+            self
+        }
+    }
+
     /// Adds a job to the workflow with the specified ID and job configuration.
     pub fn add_job<T: ToString, J: Into<Job>>(mut self, id: T, job: J) -> Self {
         let key = id.to_string();
@@ -133,6 +142,15 @@ impl Workflow {
         self
     }
 
+    /// Adds an event to the workflow when a condition is met.
+    pub fn add_event_when<T: Into<Event>>(self, cond: bool, that: T) -> Self {
+        if cond {
+            self.add_event(that)
+        } else {
+            self
+        }
+    }
+
     /// Adds an environment variable to the workflow.
     pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
         let mut env = self.env.unwrap_or_default();
@@ -140,6 +158,15 @@ impl Workflow {
         env.0.extend(new_env.into().0);
         self.env = Some(env);
         self
+    }
+
+    /// Adds an environment variable to the workflow when a condition is met.
+    pub fn add_env_when<T: Into<Env>>(self, cond: bool, new_env: T) -> Self {
+        if cond {
+            self.add_env(new_env)
+        } else {
+            self
+        }
     }
 
     /// Performs a reverse lookup to get the ID of a job.
@@ -237,6 +264,15 @@ impl Job {
         }
     }
 
+    /// Adds a step to the job when a condition is met.
+    pub fn add_step_when<S: Into<Step<Run>>>(self, cond: bool, step: S) -> Self {
+        if cond {
+            self.add_step(step)
+        } else {
+            self
+        }
+    }
+
     /// Adds a step to the job.
     pub fn add_step<S: Into<Step<T>>, T: StepType>(mut self, step: S) -> Self {
         let mut steps = self.steps.unwrap_or_default();
@@ -256,12 +292,30 @@ impl Job {
         self
     }
 
+    /// Adds an environment variable to the job when a condition is met.
+    pub fn add_env_when<T: Into<Env>>(self, cond: bool, new_env: T) -> Self {
+        if cond {
+            self.add_env(new_env)
+        } else {
+            self
+        }
+    }
+
     pub fn add_needs<J: Into<Job>>(mut self, needs: J) -> Self {
         let job: Job = needs.into();
         let mut needs = self.tmp_needs.unwrap_or_default();
         needs.push(job);
         self.tmp_needs = Some(needs);
         self
+    }
+
+    /// Adds a dependency to the job when a condition is met.
+    pub fn add_needs_when<T: Into<Job>>(self, cond: bool, needs: T) -> Self {
+        if cond {
+            self.add_needs(needs)
+        } else {
+            self
+        }
     }
 }
 
@@ -523,6 +577,15 @@ impl Step<Use> {
         }
 
         self
+    }
+
+    /// Adds a new input to the step when a condition is met.
+    pub fn add_with_when<I: Into<Input>>(self, cond: bool, new_with: I) -> Self {
+        if cond {
+            self.add_with(new_with)
+        } else {
+            self
+        }
     }
 }
 
