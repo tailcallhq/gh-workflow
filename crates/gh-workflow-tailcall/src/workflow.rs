@@ -64,24 +64,24 @@ impl Workflow {
             .packages(Level::Write)
             .contents(Level::Write);
         let release = Job::new("Release")
-            .cond((&cond).clone())
-            .add_needs((&build).clone())
+            .cond(cond.clone())
+            .add_needs(build.clone())
             .add_env(Env::github())
             .add_env(Env::new(
                 "CARGO_REGISTRY_TOKEN",
                 "${{ secrets.CARGO_REGISTRY_TOKEN }}",
             ))
-            .permissions((&permissions).clone())
+            .permissions(permissions.clone())
             .add_step(Step::checkout())
             .add_step(Release::default().command(Command::Release));
 
         let release_pr = Job::new("Release PR")
-            .cond((&cond).clone())
+            .cond(cond.clone())
             .concurrency(
                 Concurrency::new(Expression::new("release-${{github.ref}}"))
                     .cancel_in_progress(false),
             )
-            .add_needs((&build).clone())
+            .add_needs(build.clone())
             .add_env(Env::github())
             .add_env(Env::new(
                 "CARGO_REGISTRY_TOKEN",
@@ -94,7 +94,7 @@ impl Workflow {
         GHWorkflow::new(self.name.clone())
             .add_env(flags)
             .on(event)
-            .add_job("build", (&build).clone())
+            .add_job("build", build.clone())
             .add_job_when(self.auto_release, "release", release)
             .add_job_when(self.auto_release, "release-pr", release_pr)
     }
