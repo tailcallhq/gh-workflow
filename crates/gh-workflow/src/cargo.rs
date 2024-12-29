@@ -1,7 +1,7 @@
 use derive_setters::Setters;
 
 use crate::toolchain::Version;
-use crate::{Run, Step};
+use crate::{Env, Run, Step};
 
 #[derive(Clone, Setters)]
 #[setters(strip_option, into)]
@@ -21,6 +21,8 @@ pub struct Cargo {
     /// Arguments to be passed to the cargo command.
     #[setters(skip)]
     pub args: Vec<String>,
+
+    pub env: Option<Env>,
 }
 
 impl Cargo {
@@ -32,7 +34,16 @@ impl Cargo {
             name: Default::default(),
             toolchain: Default::default(),
             args: Default::default(),
+            env: Default::default(),
         }
+    }
+
+    pub fn add_env<T: Into<Env>>(mut self, new_env: T) -> Self {
+        let mut env = self.env.unwrap_or_default();
+        env.0.extend(new_env.into().0);
+
+        self.env = Some(env);
+        self
     }
 
     /// Sets the toolchain to nightly.
@@ -98,6 +109,30 @@ impl From<Cargo> for Step<Run> {
             step = step.name(name);
         }
 
+        if let Some(env) = value.env {
+            step = step.env(env);
+        }
+
         step
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cargo() {
+        let cargo = Cargo::new("fmt")
+            .add_args("--all")
+            .add_args("--check")
+            .nightly()
+            .add_env(Env::github());
+
+        let step: Step<Run> = cargo.into();
+
+        insta::assert_snapshot!(serde_yaml::to_string(&step).unwrap());
+    }
+}
+

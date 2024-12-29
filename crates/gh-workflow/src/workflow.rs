@@ -377,7 +377,7 @@ impl StepType for Use {
 /// Represents environment variables in the workflow.
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct Env(IndexMap<String, Value>);
+pub struct Env(pub(crate) IndexMap<String, Value>);
 
 impl From<IndexMap<String, Value>> for Env {
     /// Converts an `IndexMap` into an `Env`.

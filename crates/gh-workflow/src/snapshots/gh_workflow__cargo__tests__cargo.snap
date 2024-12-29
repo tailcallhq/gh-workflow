@@ -1,0 +1,7 @@
+---
+source: crates/gh-workflow/src/cargo.rs
+expression: "serde_yaml::to_string(&step).unwrap()"
+---
+run: cargo +nightly fmt --all --check
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
