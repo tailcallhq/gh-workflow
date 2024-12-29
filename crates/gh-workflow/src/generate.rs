@@ -140,3 +140,47 @@ fn find_value<'a, K, V: PartialEq>(job: &V, map: &'a IndexMap<K, V>) -> Option<&
     map.iter()
         .find_map(|(k, v)| if v == job { Some(k) } else { None })
 }
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_snapshot;
+
+    use super::*;
+
+    #[test]
+    fn add_needs_job() {
+        let base_job = Job::new("Base job");
+
+        let job1 =
+            Job::new("The first job that has dependency for base_job").add_needs(base_job.clone());
+        let job2 =
+            Job::new("The second job that has dependency for base_job").add_needs(base_job.clone());
+
+        let workflow = Workflow::new("All jobs were added to workflow")
+            .add_job("base_job", base_job)
+            .add_job("with-dependency-1", job1)
+            .add_job("with-dependency-2", job2);
+
+        let workflow = Generate::new(workflow).workflow;
+
+        assert_snapshot!(workflow.to_string().unwrap());
+    }
+
+    #[test]
+    fn missing_add_job() {
+        let base_job = Job::new("Base job");
+
+        let job1 =
+            Job::new("The first job that has dependency for base_job").add_needs(base_job.clone());
+        let job2 =
+            Job::new("The second job that has dependency for base_job").add_needs(base_job.clone());
+
+        let workflow = Workflow::new("base_job was not added to workflow jobs")
+            .add_job("with-dependency-1", job1)
+            .add_job("with-dependency-2", job2);
+
+        let workflow = Generate::new(workflow).workflow;
+
+        assert_snapshot!(workflow.to_string().unwrap());
+    }
+}
