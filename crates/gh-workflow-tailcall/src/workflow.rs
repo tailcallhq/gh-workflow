@@ -62,7 +62,7 @@ impl Workflow {
     }
 
     /// Converts the workflow into a Github workflow.
-    fn to_ci_workflow(&self) -> GHWorkflow {
+    pub fn to_ci_workflow(&self) -> GHWorkflow {
         GHWorkflow::new(self.name.clone())
             .add_env(self.workflow_flags())
             .on(self.workflow_event())
