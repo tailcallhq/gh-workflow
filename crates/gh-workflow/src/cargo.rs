@@ -117,7 +117,6 @@ impl From<Cargo> for Step<Run> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -135,4 +134,3 @@ mod tests {
         insta::assert_snapshot!(serde_yaml::to_string(&step).unwrap());
     }
 }
-
