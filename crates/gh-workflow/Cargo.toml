@@ -13,7 +13,7 @@ readme = "../../README.md"
 
 [dependencies]
 async-trait = "0.1.83"
-derive_more = { version = "1.0.0", features = ["from", "deref", "deref_mut"] }
+derive_more = { version = "2.0.0", features = ["from", "deref", "deref_mut"] }
 derive_setters = "0.1.6"
 indexmap = { version = "2.6.0", features = ["serde"] }
 merge = "0.1.0"
