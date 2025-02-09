@@ -20,7 +20,7 @@ merge = "0.1.0"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128" }
 serde_yaml = "0.9.34"
-strum_macros = "0.26.4"
+strum_macros = "0.27.0"
 gh-workflow-macros = { path = "../gh-workflow-macros", version = "0.5.10" }
 
 [dev-dependencies]
