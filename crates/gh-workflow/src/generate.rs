@@ -1,7 +1,6 @@
 //! This module provides functionality to customize generation of the GitHub
 //! Actions workflow files.
 
-use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -70,7 +69,7 @@ impl Generate {
                 }
                 Err(Error::MissingWorkflowFile(path)) => {
                     std::fs::create_dir_all(path.parent().ok_or(Error::IO(
-                        std::io::Error::new(ErrorKind::Other, "Invalid parent dir(s) path"),
+                        std::io::Error::other("Invalid parent dir(s) path"),
                     ))?)?;
                     std::fs::write(path.clone(), content)?;
                     println!("Generated workflow file: {}", path.display());
