@@ -202,25 +202,25 @@ impl fmt::Display for Step {
             Step::Root => write!(f, ""),
             Step::Select { name, object } => {
                 if matches!(**object, Step::Root) {
-                    write!(f, "{}", name)
+                    write!(f, "{name}")
                 } else {
-                    write!(f, "{}.{}", object, name)
+                    write!(f, "{object}.{name}")
                 }
             }
             Step::Eq { left, right } => {
-                write!(f, "{} == {}", left, right)
+                write!(f, "{left} == {right}")
             }
             Step::And { left, right } => {
-                write!(f, "{} && {}", left, right)
+                write!(f, "{left} && {right}")
             }
             Step::Or { left, right } => {
-                write!(f, "{} || {}", left, right)
+                write!(f, "{left} || {right}")
             }
             Step::Literal(value) => {
-                write!(f, "'{}'", value)
+                write!(f, "'{value}'")
             }
             Step::Concat { left, right } => {
-                write!(f, "{}{}", left, right)
+                write!(f, "{left}{right}")
             }
         }
     }

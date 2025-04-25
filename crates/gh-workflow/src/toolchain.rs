@@ -44,7 +44,7 @@ impl Display for Component {
             Component::Rustfmt => "rustfmt",
             Component::RustDoc => "rust-doc",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -64,7 +64,7 @@ impl Display for Arch {
             Arch::Arm => "arm",
             Arch::Wasm32 => "wasm32",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -82,7 +82,7 @@ impl Display for Vendor {
             Vendor::Apple => "apple",
             Vendor::PC => "pc",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -102,7 +102,7 @@ impl Display for System {
             System::Linux => "linux",
             System::Darwin => "darwin",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -122,7 +122,7 @@ impl Display for Abi {
             Abi::Msvc => "msvc",
             Abi::Musl => "musl",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -205,10 +205,10 @@ impl From<Toolchain> for Step<Use> {
                 Version::Stable => "stable".to_string(),
                 Version::Nightly => "nightly".to_string(),
                 Version::Custom((major, minor, patch)) => {
-                    format!("{}.{}.{}", major, minor, patch)
+                    format!("{major}.{minor}.{patch}")
                 }
             })
-            .reduce(|acc, a| format!("{}, {}", acc, a));
+            .reduce(|acc, a| format!("{acc}, {a}"));
 
         let mut input = Input::default();
 
@@ -233,7 +233,7 @@ impl From<Toolchain> for Step<Use> {
                 .components
                 .iter()
                 .map(|c| c.to_string())
-                .reduce(|acc, a| format!("{}, {}", acc, a))
+                .reduce(|acc, a| format!("{acc}, {a}"))
                 .unwrap_or_default();
 
             input = input.add("components", components);
@@ -252,7 +252,7 @@ impl From<Toolchain> for Step<Use> {
             let cache_workspaces = value
                 .cache_workspaces
                 .iter()
-                .fold("".to_string(), |acc, a| format!("{}\n{}", acc, a));
+                .fold("".to_string(), |acc, a| format!("{acc}\n{a}"));
 
             input = input.add("cache-workspaces", cache_workspaces);
         }

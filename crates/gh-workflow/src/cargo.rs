@@ -74,7 +74,7 @@ impl From<Cargo> for Step<Run> {
         let mut command = vec!["cargo".to_string()];
 
         if let Some(toolchain) = value.toolchain {
-            command.push(format!("+{}", toolchain));
+            command.push(format!("+{toolchain}"));
         }
 
         command.push(value.command);
