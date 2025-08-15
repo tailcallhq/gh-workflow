@@ -587,7 +587,7 @@ impl Step<Use> {
 
     /// Creates a step pointing to the default GitHub's Checkout Action.
     pub fn checkout() -> Step<Use> {
-        Step::uses("actions", "checkout", "v4").name("Checkout Code")
+        Step::uses("actions", "checkout", "v5").name("Checkout Code")
     }
 
     /// Adds a new input to the step.
