@@ -1,6 +1,6 @@
 [package]
 name = "gh-workflow"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 
 description = "A type-safe GitHub Actions workflow generator"
@@ -21,7 +21,7 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128" }
 serde_yaml = "0.9.34"
 strum_macros = "0.27.0"
-gh-workflow-macros = { path = "../gh-workflow-macros", version = "0.6.0" }
+gh-workflow-macros = { path = "../gh-workflow-macros", version = "0.6.1" }
 
 [dev-dependencies]
 insta = "1.40.0"
