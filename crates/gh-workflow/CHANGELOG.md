@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1](https://github.com/tailcallhq/gh-workflow/compare/gh-workflow-v0.6.0...gh-workflow-v0.6.1) - 2025-08-16
+
+### Other
+
+- *(deps)* update actions/checkout action to v5 ([#162](https://github.com/tailcallhq/gh-workflow/pull/162))
+
 ## [0.6.0](https://github.com/tailcallhq/gh-workflow/compare/gh-workflow-v0.5.10...gh-workflow-v0.6.0) - 2025-05-06
 
 ### Added
