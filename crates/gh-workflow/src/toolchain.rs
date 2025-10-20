@@ -17,16 +17,16 @@ pub enum Version {
 impl Display for Version {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Version::Stable => write!(f, "stable"),
-            Version::Nightly => write!(f, "nightly"),
-            Version::Custom(s) => write!(f, "{}.{}.{}", s.0, s.1, s.2),
+            Self::Stable => write!(f, "stable"),
+            Self::Nightly => write!(f, "nightly"),
+            Self::Custom(s) => write!(f, "{}.{}.{}", s.0, s.1, s.2),
         }
     }
 }
 
 impl Version {
     pub fn new(major: u64, minor: u64, patch: u64) -> Self {
-        Version::Custom((major, minor, patch))
+        Self::Custom((major, minor, patch))
     }
 }
 
@@ -40,9 +40,9 @@ pub enum Component {
 impl Display for Component {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            Component::Clippy => "clippy",
-            Component::Rustfmt => "rustfmt",
-            Component::RustDoc => "rust-doc",
+            Self::Clippy => "clippy",
+            Self::Rustfmt => "rustfmt",
+            Self::RustDoc => "rust-doc",
         };
         write!(f, "{val}")
     }
@@ -59,10 +59,10 @@ pub enum Arch {
 impl Display for Arch {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            Arch::X86_64 => "x86_64",
-            Arch::Aarch64 => "aarch64",
-            Arch::Arm => "arm",
-            Arch::Wasm32 => "wasm32",
+            Self::X86_64 => "x86_64",
+            Self::Aarch64 => "aarch64",
+            Self::Arm => "arm",
+            Self::Wasm32 => "wasm32",
         };
         write!(f, "{val}")
     }
@@ -78,9 +78,9 @@ pub enum Vendor {
 impl Display for Vendor {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            Vendor::Unknown => "unknown",
-            Vendor::Apple => "apple",
-            Vendor::PC => "pc",
+            Self::Unknown => "unknown",
+            Self::Apple => "apple",
+            Self::PC => "pc",
         };
         write!(f, "{val}")
     }
@@ -97,10 +97,10 @@ pub enum System {
 impl Display for System {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            System::Unknown => "unknown",
-            System::Windows => "windows",
-            System::Linux => "linux",
-            System::Darwin => "darwin",
+            Self::Unknown => "unknown",
+            Self::Windows => "windows",
+            Self::Linux => "linux",
+            Self::Darwin => "darwin",
         };
         write!(f, "{val}")
     }
@@ -117,10 +117,10 @@ pub enum Abi {
 impl Display for Abi {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let val = match self {
-            Abi::Unknown => "unknown",
-            Abi::Gnu => "gnu",
-            Abi::Msvc => "msvc",
-            Abi::Musl => "musl",
+            Self::Unknown => "unknown",
+            Self::Gnu => "gnu",
+            Self::Msvc => "msvc",
+            Self::Musl => "musl",
         };
         write!(f, "{val}")
     }

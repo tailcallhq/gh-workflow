@@ -73,7 +73,7 @@ pub struct Input(#[serde(skip_serializing_if = "IndexMap::is_empty")] pub IndexM
 impl From<IndexMap<String, Value>> for Input {
     /// Converts an `IndexMap` into an `Input`.
     fn from(value: IndexMap<String, Value>) -> Self {
-        Input(value)
+        Self(value)
     }
 }
 
@@ -162,7 +162,7 @@ pub struct StepValue {
 impl StepValue {
     /// Creates a new `StepValue` that runs the provided shell command.
     pub fn run<T: ToString>(cmd: T) -> Self {
-        StepValue { run: Some(cmd.to_string()), ..Default::default() }
+        Self { run: Some(cmd.to_string()), ..Default::default() }
     }
 
     /// Creates a new `StepValue` that uses an action.
@@ -171,7 +171,7 @@ impl StepValue {
         repo: Repo,
         version: Version,
     ) -> Self {
-        StepValue {
+        Self {
             uses: Some(format!(
                 "{}/{}@{}",
                 owner.to_string(),
@@ -197,7 +197,7 @@ impl<T> Step<T> {
 
 impl Step<()> {
     pub fn new(name: impl ToString) -> Self {
-        Step {
+        Self {
             value: StepValue::default().name(name.to_string()),
             marker: Default::default(),
         }
@@ -222,7 +222,7 @@ impl Step<()> {
 /// Represents a step that uses an action.
 impl Step<Use> {
     /// Creates a step pointing to the default GitHub's Checkout Action.
-    pub fn checkout() -> Step<Use> {
+    pub fn checkout() -> Self {
         Step::new("Checkout Code").uses("actions", "checkout", "v5")
     }
 
@@ -246,13 +246,13 @@ impl<S1: ToString, S2: ToString> From<(S1, S2)> for Input {
     fn from(value: (S1, S2)) -> Self {
         let mut index_map: IndexMap<String, Value> = IndexMap::new();
         index_map.insert(value.0.to_string(), Value::String(value.1.to_string()));
-        Input(index_map)
+        Self(index_map)
     }
 }
 
 impl Step<Toolchain> {
-    pub fn toolchain() -> Step<Toolchain> {
-        Step { value: Default::default(), marker: Toolchain::default() }
+    pub fn toolchain() -> Self {
+        Self { value: Default::default(), marker: Toolchain::default() }
     }
 
     pub fn add_version(mut self, version: Version) -> Self {

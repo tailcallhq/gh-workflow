@@ -15,7 +15,7 @@ pub struct Env(pub IndexMap<String, Value>);
 impl From<IndexMap<String, Value>> for Env {
     /// Converts an `IndexMap` into an `Env`.
     fn from(value: IndexMap<String, Value>) -> Self {
-        Env(value)
+        Self(value)
     }
 }
 
@@ -27,12 +27,12 @@ impl Env {
             "GITHUB_TOKEN".to_string(),
             Value::from("${{ secrets.GITHUB_TOKEN }}"),
         );
-        Env(map)
+        Self(map)
     }
 
     /// Creates a new `Env` with a specified key-value pair.
     pub fn new<K: ToString, V: Into<Value>>(key: K, value: V) -> Self {
-        Env::default().add(key, value)
+        Self::default().add(key, value)
     }
 
     /// Adds an environment variable to the `Env`.
@@ -48,6 +48,6 @@ impl<S1: Display, S2: Display> From<(S1, S2)> for Env {
     fn from(value: (S1, S2)) -> Self {
         let mut index_map: IndexMap<String, Value> = IndexMap::new();
         index_map.insert(value.0.to_string(), Value::String(value.1.to_string()));
-        Env(index_map)
+        Self(index_map)
     }
 }
