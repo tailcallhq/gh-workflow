@@ -23,7 +23,7 @@ GitHub Actions is powerful, but writing workflows can sometimes feel repetitive,
 To use **Rust GitHub Workflows** in your project, add it to your `Cargo.toml`:
 
 ```toml
-[build-dependencies]
+[dev-dependencies]
 gh-workflow = "*" # Add the latest version
 ```
 
@@ -35,7 +35,7 @@ Then you can start creating GitHub Actions in your [tests/ci.rs](https://github.
 - Add the following code to generate the GitHub Actions workflow:
 
   ```rust
-  use gh_workflows::*;
+  use gh_workflow::*;
 
   #[test]
   fn main() {
