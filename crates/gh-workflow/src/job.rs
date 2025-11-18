@@ -141,7 +141,6 @@ impl Job {
         self
     }
 
-
     /// Adds an output to the job.
     pub fn add_output<K: ToString, V: ToString>(mut self, key: K, value: V) -> Self {
         let mut outputs = self.outputs.take().unwrap_or_default();
