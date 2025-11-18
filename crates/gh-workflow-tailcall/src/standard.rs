@@ -206,9 +206,9 @@ impl StandardWorkflow {
 
         if matches!(self.test_runner, TestRunner::Nextest) {
             job = job.add_step(
-                Cargo::new("install")
-                    .args("cargo-nextest --locked")
-                    .name("Install nextest"),
+                Step::new("Install nextest")
+                    .uses("taiki-e", "install-action", "v2")
+                    .add_with(("tool", "nextest")),
             );
         }
         job = job

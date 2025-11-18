@@ -45,7 +45,9 @@ jobs:
       with:
         toolchain: stable
     - name: Install nextest
-      run: cargo install cargo-nextest --locked
+      uses: taiki-e/install-action@v2
+      with:
+        tool: nextest
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
       with:
@@ -85,6 +87,9 @@ jobs:
       contents: write
       pull-requests: write
       packages: write
+    concurrency:
+      group: release-${{github.ref}}
+      cancel-in-progress: false
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -95,9 +100,6 @@ jobs:
       uses: release-plz/action@v0.5
       with:
         command: release
-    concurrency:
-      group: release-${{github.ref}}
-      cancel-in-progress: false
   release-pr:
     needs:
     - build
@@ -109,6 +111,9 @@ jobs:
       contents: write
       pull-requests: write
       packages: write
+    concurrency:
+      group: release-${{github.ref}}
+      cancel-in-progress: false
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -119,6 +124,3 @@ jobs:
       uses: release-plz/action@v0.5
       with:
         command: release-pr
-    concurrency:
-      group: release-${{github.ref}}
-      cancel-in-progress: false
