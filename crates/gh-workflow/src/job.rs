@@ -23,7 +23,7 @@ where
 {
     /// Converts a value into a `RunsOn` instance.
     fn from(value: T) -> Self {
-        RunsOn(value.into())
+        Self(value.into())
     }
 }
 

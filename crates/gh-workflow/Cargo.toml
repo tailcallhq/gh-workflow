@@ -26,3 +26,7 @@ gh-workflow-macros = { path = "../gh-workflow-macros", version = "0.8.0" }
 [dev-dependencies]
 insta = "1.40.0"
 pretty_assertions = "1.4.1"
+
+
+[lints]
+workspace = true

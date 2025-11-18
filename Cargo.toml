@@ -1,3 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["crates/*"]
+
+
+[workspace.lints.clippy]
+use_self = "warn"

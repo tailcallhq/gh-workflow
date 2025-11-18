@@ -78,7 +78,7 @@ impl Volume {
     pub fn new(volume_str: &str) -> Option<Self> {
         let parts: Vec<&str> = volume_str.split(':').collect();
         if parts.len() == 2 {
-            Some(Volume {
+            Some(Self {
                 source: parts[0].to_string(),
                 destination: parts[1].to_string(),
             })

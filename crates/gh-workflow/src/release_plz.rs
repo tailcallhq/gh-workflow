@@ -50,8 +50,8 @@ pub enum Command {
 impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Command::ReleasePR => write!(f, "release-pr"),
-            Command::Release => write!(f, "release"),
+            Self::ReleasePR => write!(f, "release-pr"),
+            Self::Release => write!(f, "release"),
         }
     }
 }
@@ -65,8 +65,8 @@ pub enum Backend {
 impl std::fmt::Display for Backend {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Backend::GitHub => write!(f, "github"),
-            Backend::Gitea => write!(f, "gitea"),
+            Self::GitHub => write!(f, "github"),
+            Self::Gitea => write!(f, "gitea"),
         }
     }
 }
