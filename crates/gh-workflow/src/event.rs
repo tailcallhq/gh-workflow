@@ -808,6 +808,13 @@ pub struct WorkflowCall {
     pub secrets: HashMap<String, WorkflowCallSecret>,
 }
 
+impl WorkflowCall {
+    pub fn add_input(mut self, name: impl Into<String>, input: WorkflowCallInput) -> Self {
+        self.inputs.insert(name.into(), input);
+        self
+    }
+}
+
 /// Configuration for workflow call input
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Setters, Eq)]
 #[setters(strip_option, into)]
