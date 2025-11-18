@@ -52,7 +52,7 @@ pub struct Credentials {
 
 /// Represents a network port.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
+#[serde(untagged)]
 pub enum Port {
     /// A port specified by its number.
     Number(u16),
