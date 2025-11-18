@@ -12,12 +12,12 @@ repository = "https://github.com/tailcallhq/gh-workflow"
 keywords = ["github", "actions", "workflow", "generator"]
 
 [dependencies]
-derive_setters = { version = "0.1.6" }
+derive_setters = { version = "0.1.8" }
 gh-workflow = { path = "../gh-workflow", version = "0.8.0" }
 heck = "0.5.0"
 
 [dev-dependencies]
-insta = "1.40.0"
+insta = "1.43.2"
 pretty_assertions = "1.4.1"
 
 
