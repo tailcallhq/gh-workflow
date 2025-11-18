@@ -28,7 +28,7 @@ where
 }
 
 /// Represents a job in the workflow.
-#[derive(Debug, Setters, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct Job {
@@ -72,6 +72,33 @@ pub struct Job {
     pub artifacts: Option<Artifacts>,
 }
 
+impl Default for Job {
+    /// Creates a default `Job` with `runs_on` set to "ubuntu-latest".
+    fn default() -> Self {
+        Self {
+            needs: None,
+            cond: None,
+            name: None,
+            runs_on: Some(RunsOn(Value::from("ubuntu-latest"))),
+            permissions: None,
+            env: None,
+            strategy: None,
+            steps: None,
+            uses: None,
+            container: None,
+            outputs: None,
+            concurrency: None,
+            timeout_minutes: None,
+            services: None,
+            secrets: None,
+            defaults: None,
+            continue_on_error: None,
+            retry: None,
+            artifacts: None,
+        }
+    }
+}
+
 impl Job {
     /// Creates a new `Job` with the specified name and default settings.
     pub fn new<T: ToString>(name: T) -> Self {
@@ -108,5 +135,21 @@ impl Job {
             self.needs = Some(vec![job_id.to_string()]);
         }
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_job_default_sets_runs_on() {
+        let job = Job::default();
+        assert!(job.runs_on.is_some());
+        
+        // Verify it's set to "ubuntu-latest"
+        if let Some(runs_on) = job.runs_on {
+            assert_eq!(runs_on.0, serde_json::Value::String("ubuntu-latest".to_string()));
+        }
     }
 }
