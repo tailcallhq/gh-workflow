@@ -4,8 +4,8 @@ use serde_json::Value;
 
 fn split(content: &str) -> (Value, Value) {
     let parsed = Workflow::parse(content).unwrap();
-    let actual = serde_yaml::from_str::<Value>(&parsed.to_string().unwrap()).unwrap();
-    let expected = serde_yaml::from_str::<Value>(content).unwrap();
+    let actual = serde_yml::from_str::<Value>(&parsed.to_string().unwrap()).unwrap();
+    let expected = serde_yml::from_str::<Value>(content).unwrap();
 
     (actual, expected)
 }

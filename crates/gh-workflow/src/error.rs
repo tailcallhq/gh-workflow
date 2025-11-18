@@ -4,7 +4,7 @@
 #[derive(Debug, derive_more::From)]
 pub enum Error {
     IO(std::io::Error),
-    Yaml(serde_yaml::Error),
+    Yaml(serde_yml::Error),
     GitHubWorkflowMismatch,
     JobIdAlreadyExists(String),
     UTF8(std::string::FromUtf8Error),

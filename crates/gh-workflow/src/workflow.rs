@@ -116,7 +116,7 @@ impl Workflow {
 
     /// Converts the `Workflow` to a YAML string representation.
     pub fn to_string(&self) -> Result<String> {
-        Ok(serde_yaml::to_string(self)?)
+        Ok(serde_yml::to_string(self)?)
     }
 
     /// Adds a job to the workflow with the specified ID and job configuration.
@@ -130,7 +130,7 @@ impl Workflow {
 
     /// Parses a YAML string into a `Workflow`.
     pub fn parse(yml: &str) -> Result<Self> {
-        Ok(serde_yaml::from_str(yml)?)
+        Ok(serde_yml::from_str(yml)?)
     }
 
     /// Generates the workflow using the `Generate` struct.

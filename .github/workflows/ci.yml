@@ -17,8 +17,8 @@
 
 name: ci
 env:
-  RUSTFLAGS: -Dwarnings
-on:
+  RUSTFLAGS: '-Dwarnings'
+'on':
   pull_request:
     types:
     - opened
