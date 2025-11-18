@@ -1,6 +1,6 @@
 [workspace]
 dependencies_update = true
-release_always = false
+release_always = true
 
 [[package]]
 name = "gh-workflow-macros"
