@@ -28,6 +28,7 @@ where
 }
 
 /// Represents a job in the workflow.
+/// Field order matches GitHub Actions YAML structure for better readability.
 #[derive(Debug, Setters, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
@@ -43,7 +44,23 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub environment: Option<crate::Environment>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub concurrency: Option<Concurrency>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outputs: Option<IndexMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub env: Option<Env>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defaults: Option<Defaults>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout_minutes: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub continue_on_error: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container: Option<Container>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub services: Option<IndexMap<String, Container>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strategy: Option<Strategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,21 +68,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub container: Option<Container>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub outputs: Option<IndexMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub concurrency: Option<Concurrency>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeout_minutes: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<IndexMap<String, Container>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub secrets: Option<IndexMap<String, Secret>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub defaults: Option<Defaults>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub continue_on_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,18 +84,19 @@ impl Default for Job {
             name: None,
             runs_on: Some(RunsOn(Value::from("ubuntu-latest"))),
             permissions: None,
+            environment: None,
+            concurrency: None,
+            outputs: None,
             env: None,
+            defaults: None,
+            timeout_minutes: None,
+            continue_on_error: None,
+            container: None,
+            services: None,
             strategy: None,
             steps: None,
             uses: None,
-            container: None,
-            outputs: None,
-            concurrency: None,
-            timeout_minutes: None,
-            services: None,
             secrets: None,
-            defaults: None,
-            continue_on_error: None,
             retry: None,
             artifacts: None,
         }
