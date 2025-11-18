@@ -140,6 +140,31 @@ impl Job {
         }
         self
     }
+
+
+    /// Adds an output to the job.
+    pub fn add_output<K: ToString, V: ToString>(mut self, key: K, value: V) -> Self {
+        let mut outputs = self.outputs.take().unwrap_or_default();
+        outputs.insert(key.to_string(), value.to_string());
+        self.outputs = Some(outputs);
+        self
+    }
+
+    /// Adds a service to the job.
+    pub fn add_service<K: ToString, V: Into<Container>>(mut self, key: K, service: V) -> Self {
+        let mut services = self.services.take().unwrap_or_default();
+        services.insert(key.to_string(), service.into());
+        self.services = Some(services);
+        self
+    }
+
+    /// Adds a secret to the job.
+    pub fn add_secret<K: ToString, V: Into<Secret>>(mut self, key: K, secret: V) -> Self {
+        let mut secrets = self.secrets.take().unwrap_or_default();
+        secrets.insert(key.to_string(), secret.into());
+        self.secrets = Some(secrets);
+        self
+    }
 }
 
 #[cfg(test)]
