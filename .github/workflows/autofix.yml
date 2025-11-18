@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    concurrency:
+      group: autofix-${{github.ref}}
+      cancel-in-progress: false
     steps:
     - name: Checkout Code
       uses: actions/checkout@v5
@@ -56,6 +59,3 @@ jobs:
       run: cargo +nightly clippy --fix --allow-dirty --all-features --workspace -- -D warnings
     - name: auto-fix
       uses: autofix-ci/action@v1
-    concurrency:
-      group: autofix-${{github.ref}}
-      cancel-in-progress: false
