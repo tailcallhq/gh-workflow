@@ -20,24 +20,24 @@ enum Step {
     Root,
     Select {
         name: Rc<String>,
-        object: Box<Step>,
+        object: Box<Self>,
     },
     Eq {
-        left: Box<Step>,
-        right: Box<Step>,
+        left: Box<Self>,
+        right: Box<Self>,
     },
     And {
-        left: Box<Step>,
-        right: Box<Step>,
+        left: Box<Self>,
+        right: Box<Self>,
     },
     Or {
-        left: Box<Step>,
-        right: Box<Step>,
+        left: Box<Self>,
+        right: Box<Self>,
     },
     Literal(String),
     Concat {
-        left: Box<Step>,
-        right: Box<Step>,
+        left: Box<Self>,
+        right: Box<Self>,
     },
 }
 

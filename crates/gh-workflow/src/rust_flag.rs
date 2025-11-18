@@ -10,7 +10,7 @@ use crate::Env;
 #[derive(Clone)]
 pub enum RustFlags {
     Lint(String, Lint),
-    Combine(Box<RustFlags>, Box<RustFlags>),
+    Combine(Box<Self>, Box<Self>),
 }
 #[derive(Clone)]
 pub enum Lint {
