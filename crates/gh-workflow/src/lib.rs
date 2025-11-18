@@ -18,7 +18,6 @@ mod strategy;
 
 pub mod ctx;
 pub mod generate;
-pub mod release_plz;
 mod rust_flag;
 pub mod toolchain;
 pub(crate) mod workflow;
