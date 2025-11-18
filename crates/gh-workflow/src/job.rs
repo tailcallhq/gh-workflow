@@ -150,10 +150,13 @@ mod tests {
     fn test_job_default_sets_runs_on() {
         let job = Job::default();
         assert!(job.runs_on.is_some());
-        
+
         // Verify it's set to "ubuntu-latest"
         if let Some(runs_on) = job.runs_on {
-            assert_eq!(runs_on.0, serde_json::Value::String("ubuntu-latest".to_string()));
+            assert_eq!(
+                runs_on.0,
+                serde_json::Value::String("ubuntu-latest".to_string())
+            );
         }
     }
 }
