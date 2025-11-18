@@ -14,68 +14,100 @@ use crate::is_default;
 #[setters(strip_option, into)]
 pub struct Event {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub branch_protection_rule: Option<BranchProtectionRule>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub check_run: Option<CheckRun>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub check_suite: Option<CheckSuite>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub create: Option<Create>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub delete: Option<Delete>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub deployment: Option<Deployment>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub deployment_status: Option<DeploymentStatus>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub discussion: Option<Discussion>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub discussion_comment: Option<DiscussionComment>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub fork: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub gollum: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub issue_comment: Option<IssueComment>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub issues: Option<Issues>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub label: Option<Label>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub merge_group: Option<MergeGroup>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub milestone: Option<Milestone>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub page_build: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub public: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub pull_request: Option<PullRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub pull_request_review: Option<PullRequestReview>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub pull_request_review_comment: Option<PullRequestReviewComment>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub pull_request_target: Option<PullRequestTarget>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub push: Option<Push>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub registry_package: Option<RegistryPackage>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub release: Option<Release>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub repository_dispatch: Option<RepositoryDispatch>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub schedule: Option<Vec<Schedule>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub status: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub watch: Option<Watch>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub workflow_call: Option<WorkflowCall>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub workflow_dispatch: Option<WorkflowDispatch>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[merge(strategy = merge::option::overwrite_none)]
     pub workflow_run: Option<WorkflowRun>,
 }
 
