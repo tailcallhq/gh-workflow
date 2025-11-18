@@ -14,9 +14,9 @@ keywords = ["github", "actions", "workflow", "generator"]
 proc-macro = true
 
 [dependencies]
-syn = "2.0"
-quote = "1.0"
-heck = "0.5.0"
+syn = { workspace = true }
+quote = { workspace = true }
+heck = { workspace = true }
 
 
 [lints]

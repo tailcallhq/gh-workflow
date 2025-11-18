@@ -3,5 +3,25 @@ resolver = "2"
 members = ["crates/*"]
 
 
+[workspace.dependencies]
+# Core dependencies
+async-trait = "0.1.89"
+derive_more = { version = "2.0.1", features = ["from", "deref", "deref_mut"] }
+derive_setters = "0.1.8"
+heck = "0.5.0"
+indexmap = { version = "2.12.0", features = ["serde"] }
+merge = "0.1.0"
+quote = "1.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+serde_yaml = "0.9.34"
+strum_macros = "0.27.2"
+syn = "2.0"
+
+# Dev dependencies
+insta = "1.43.2"
+pretty_assertions = "1.4.1"
+
+
 [workspace.lints.clippy]
 use_self = "warn"
