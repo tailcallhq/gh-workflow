@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7](https://github.com/tailcallhq/gh-workflow/compare/gh-workflow-tailcall-v0.5.6...gh-workflow-tailcall-v0.5.7) - 2025-11-18
+
+### Other
+
+- *(deps)* update quote to 1.0.42
+
 ## [0.5.6](https://github.com/tailcallhq/gh-workflow/compare/gh-workflow-tailcall-v0.5.5...gh-workflow-tailcall-v0.5.6) - 2025-09-08
 
 ### Other

@@ -1,6 +1,6 @@
 [package]
 name = "gh-workflow-tailcall"
-version = "0.5.6"
+version = "0.5.7"
 edition = "2021"
 
 
@@ -12,9 +12,15 @@ repository = "https://github.com/tailcallhq/gh-workflow"
 keywords = ["github", "actions", "workflow", "generator"]
 
 [dependencies]
+<<<<<<< Updated upstream
 derive_setters = { version = "0.1.6" }
 gh-workflow = { path = "../gh-workflow", version = "0.8.0" }
 heck = "0.5.0"
+=======
+derive_setters = { workspace = true }
+gh-workflow = { path = "../gh-workflow", version = "0.8.1" }
+heck = { workspace = true }
+>>>>>>> Stashed changes
 
 [dev-dependencies]
 insta = "1.40.0"

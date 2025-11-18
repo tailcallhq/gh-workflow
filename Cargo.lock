@@ -124,7 +124,7 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "gh-workflow"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "gh-workflow-macros"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "heck",
  "quote",
@@ -151,7 +151,7 @@ dependencies = [
 
 [[package]]
 name = "gh-workflow-tailcall"
-version = "0.5.6"
+version = "0.5.7"
 dependencies = [
  "derive_setters",
  "gh-workflow",
