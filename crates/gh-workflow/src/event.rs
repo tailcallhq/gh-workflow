@@ -916,6 +916,9 @@ pub struct WorkflowDispatchInput {
     /// Default value for the input
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<String>,
+    /// The options of the dropdown list, if the type is a choice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub options: Option<Vec<String>>,
 }
 
 /// Types of workflow run events
