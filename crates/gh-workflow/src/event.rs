@@ -915,7 +915,25 @@ pub struct WorkflowDispatchInput {
     pub input_type: String,
     /// Default value for the input
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[setters(skip)]
     pub default: Option<String>,
+    /// The options of the dropdown list, if the type is a choice
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[setters(skip)]
+    pub options: Vec<String>,
+}
+
+impl WorkflowDispatchInput {
+    pub fn set_default(self, value: impl Into<String>) -> Self {
+        Self { default: Some(value.into()), ..self }
+    }
+
+    pub fn options<T: ToString, I: IntoIterator<Item = T>>(self, iter: I) -> Self {
+        Self {
+            options: iter.into_iter().map(|v| v.to_string()).collect(),
+            ..self
+        }
+    }
 }
 
 /// Types of workflow run events
