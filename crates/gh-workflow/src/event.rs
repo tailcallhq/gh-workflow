@@ -633,6 +633,7 @@ impl PullRequestReviewComment {
 /// Configuration for pull request target events
 /// See: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
 #[derive(Debug, Clone, Default, Deserialize, Serialize, Setters, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 #[setters(strip_option, into)]
 pub struct PullRequestTarget {
     /// Filter on specific pull request event types
@@ -641,6 +642,11 @@ pub struct PullRequestTarget {
     /// Filter on specific branch names
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub branches: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paths: Vec<String>,
+    /// Ignore specific file paths
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paths_ignore: Vec<String>,
 }
 
 impl PullRequestTarget {
@@ -653,6 +659,16 @@ impl PullRequestTarget {
     /// Adds a branch name to filter on
     pub fn add_branch<S: Into<String>>(mut self, branch: S) -> Self {
         self.branches.push(branch.into());
+        self
+    }
+
+    pub fn add_path<S: Into<String>>(mut self, path: S) -> Self {
+        self.paths.push(path.into());
+        self
+    }
+
+    pub fn add_ignored_path<S: Into<String>>(mut self, path: S) -> Self {
+        self.paths_ignore.push(path.into());
         self
     }
 }
