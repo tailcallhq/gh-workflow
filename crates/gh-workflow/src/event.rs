@@ -558,11 +558,13 @@ impl PullRequest {
         self
     }
 
+    /// Adds a file path to filter on
     pub fn add_path<S: Into<String>>(mut self, path: S) -> Self {
         self.paths.push(path.into());
         self
     }
 
+    /// Adds a file path to not trigger on
     pub fn add_ignored_path<S: Into<String>>(mut self, path: S) -> Self {
         self.paths_ignore.push(path.into());
         self
@@ -662,11 +664,13 @@ impl PullRequestTarget {
         self
     }
 
+    /// Adds a file path to filter on
     pub fn add_path<S: Into<String>>(mut self, path: S) -> Self {
         self.paths.push(path.into());
         self
     }
 
+    /// Adds a file path to not trigger on
     pub fn add_ignored_path<S: Into<String>>(mut self, path: S) -> Self {
         self.paths_ignore.push(path.into());
         self
