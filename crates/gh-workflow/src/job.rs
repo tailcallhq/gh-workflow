@@ -157,11 +157,17 @@ impl Job {
         self
     }
 
+    /// Changes job to inherit secrets.
+    /// Will silently drop any secrets added.
+    /// Mutually exclusive with `add_secret`
     pub fn inherit_secrets(mut self) -> Self {
         self.secrets = Some(Secrets::Inherit);
         self
     }
+
     /// Adds a secret to the job.
+    /// Will silently drop/override 'inherit_secrets' if previously called.
+    /// Mutually exclusive with `inherit_secrets`
     pub fn add_secret<K: ToString, V: Into<String>>(mut self, key: K, secret: V) -> Self {
         let mut secrets = match self
             .secrets

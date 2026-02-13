@@ -18,9 +18,9 @@ pub enum Secrets {
 
 fn deserialize_inherit<'de, D>(deserializer: D) -> Result<(), D::Error>
 where
-    D: serde::Deserializer<'de>,
+    D: Deserializer<'de>,
 {
-    let s: String = serde::Deserialize::deserialize(deserializer)?;
+    let s: String = Deserialize::deserialize(deserializer)?;
     if s == "inherit" {
         Ok(())
     } else {
