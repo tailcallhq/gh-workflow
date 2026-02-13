@@ -9,7 +9,7 @@ use serde_json::Value;
 use crate::concurrency::Concurrency;
 use crate::step::{Step, StepType, StepValue};
 use crate::{
-    Artifacts, Container, Defaults, Env, Expression, Permissions, RetryStrategy, Secret, Strategy,
+    Artifacts, Container, Defaults, Env, Expression, Permissions, RetryStrategy, Secrets, Strategy,
 };
 
 /// Represents the environment in which a job runs.
@@ -68,7 +68,7 @@ pub struct Job {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<IndexMap<String, Secret>>,
+    pub secrets: Option<Secrets>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -157,11 +157,22 @@ impl Job {
         self
     }
 
+    pub fn inherit_secrets(mut self) -> Self {
+        self.secrets = Some(Secrets::Inherit);
+        self
+    }
     /// Adds a secret to the job.
-    pub fn add_secret<K: ToString, V: Into<Secret>>(mut self, key: K, secret: V) -> Self {
-        let mut secrets = self.secrets.take().unwrap_or_default();
+    pub fn add_secret<K: ToString, V: Into<String>>(mut self, key: K, secret: V) -> Self {
+        let mut secrets = match self
+            .secrets
+            .take()
+            .unwrap_or(Secrets::Values(IndexMap::default()))
+        {
+            Secrets::Inherit => IndexMap::default(),
+            Secrets::Values(values) => values,
+        };
         secrets.insert(key.to_string(), secret.into());
-        self.secrets = Some(secrets);
+        self.secrets = Some(Secrets::Values(secrets));
         self
     }
 }

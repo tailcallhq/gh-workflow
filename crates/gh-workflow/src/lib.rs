@@ -12,7 +12,7 @@ mod event;
 mod expression;
 mod job;
 mod permissions;
-mod secret;
+mod secrets;
 mod step;
 mod strategy;
 
@@ -34,7 +34,7 @@ pub use expression::*;
 pub use job::*;
 pub use permissions::*;
 pub use rust_flag::*;
-pub use secret::*;
+pub use secrets::*;
 pub use step::*;
 pub use strategy::*;
 pub use workflow::*;

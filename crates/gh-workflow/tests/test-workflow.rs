@@ -33,3 +33,9 @@ fn test_workflow_rust() {
     let (actual, expected) = split(include_str!("./fixtures/workflow-rust.yml"));
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn test_workflow_secrets() {
+    let (actual, expected) = split(include_str!("./fixtures/workflow-secrets.yml"));
+    assert_eq!(actual, expected);
+}
