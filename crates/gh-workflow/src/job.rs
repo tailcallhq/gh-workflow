@@ -3,13 +3,15 @@
 
 use derive_setters::Setters;
 use indexmap::IndexMap;
+use merge::Merge;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::concurrency::Concurrency;
 use crate::step::{Step, StepType, StepValue};
 use crate::{
-    Artifacts, Container, Defaults, Env, Expression, Permissions, RetryStrategy, Secrets, Strategy,
+    Artifacts, Container, Defaults, Env, Expression, Input, Permissions, RetryStrategy, Secrets,
+    Strategy,
 };
 
 /// Represents the environment in which a job runs.
@@ -73,6 +75,8 @@ pub struct Job {
     pub retry: Option<RetryStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts: Option<Artifacts>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub with: Option<Input>,
 }
 
 impl Default for Job {
@@ -99,6 +103,7 @@ impl Default for Job {
             secrets: None,
             retry: None,
             artifacts: None,
+            with: None,
         }
     }
 }
@@ -154,6 +159,19 @@ impl Job {
         let mut services = self.services.take().unwrap_or_default();
         services.insert(key.to_string(), service.into());
         self.services = Some(services);
+        self
+    }
+
+    /// Adds a new input to the job.
+    pub fn add_with<I: Into<Input>>(mut self, new_with: I) -> Self {
+        let mut with = self.with.take().unwrap_or_default();
+        with.merge(new_with.into());
+        if with.0.is_empty() {
+            self.with = None;
+        } else {
+            self.with = Some(with);
+        }
+
         self
     }
 
