@@ -869,13 +869,13 @@ impl Watch {
 #[setters(strip_option, into)]
 pub struct WorkflowCall {
     /// Inputs for the workflow call
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub inputs: HashMap<String, WorkflowCallInput>,
     /// Outputs from the workflow call
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub outputs: HashMap<String, WorkflowCallOutput>,
     /// Secrets for the workflow call
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub secrets: HashMap<String, WorkflowCallSecret>,
 }
 
@@ -924,7 +924,6 @@ pub struct WorkflowCallSecret {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub description: String,
     /// Indicates if the secret is required
-    #[serde(skip_serializing_if = "is_default")]
     pub required: bool,
 }
 

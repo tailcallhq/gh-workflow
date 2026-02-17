@@ -14,7 +14,6 @@ use crate::error::Result;
 use crate::generate::Generate;
 use crate::job::Job;
 use crate::permissions::Permissions;
-use crate::secret::Secret;
 use crate::Event;
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -85,10 +84,6 @@ pub struct Workflow {
     /// Default settings for jobs in the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defaults: Option<Defaults>,
-
-    /// Secrets that can be used in the workflow, such as tokens or passwords.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<IndexMap<String, Secret>>,
 
     /// The maximum number of minutes a job can run before it is canceled.
     #[serde(skip_serializing_if = "Option::is_none")]
