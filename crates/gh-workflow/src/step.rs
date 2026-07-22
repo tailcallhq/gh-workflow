@@ -240,7 +240,7 @@ impl Step<()> {
 impl Step<Use> {
     /// Creates a step pointing to the default GitHub's Checkout Action.
     pub fn checkout() -> Self {
-        Step::new("Checkout Code").uses("actions", "checkout", "v6")
+        Step::new("Checkout Code").uses("actions", "checkout", "v7")
     }
 
     /// Adds a new input to the step.
