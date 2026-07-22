@@ -1,6 +1,6 @@
 [package]
 name = "gh-workflow-tailcall"
-version = "0.9.0"
+version = "0.0.0-dev"
 edition = "2021"
 
 
@@ -13,7 +13,7 @@ keywords = ["github", "actions", "workflow", "generator"]
 
 [dependencies]
 derive_setters = { workspace = true }
-gh-workflow = { path = "../gh-workflow", version = "0.9.0" }
+gh-workflow = { path = "../gh-workflow", version = "0.0.0-dev" }
 heck = { workspace = true }
 
 [dev-dependencies]

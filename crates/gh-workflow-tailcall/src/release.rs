@@ -81,6 +81,19 @@ pub fn generate_release_publish() -> Result<()> {
                         .uses("actions-rust-lang", "setup-rust-toolchain", "v1")
                         .add_with(("toolchain", "stable")),
                 )
+                .add_step(Step::new("Validate Tag").run(
+                    r#"VERSION="${GITHUB_REF_NAME#v}"
+if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "::error::Tag '$GITHUB_REF_NAME' is not a valid release tag (expected vX.Y.Z)"
+  exit 1
+fi
+LATEST=$(curl -sf -A "gh-workflow-release" "https://crates.io/api/v1/crates/gh-workflow" | jq -r '.crate.max_stable_version // "0.0.0"')
+HIGHEST=$(printf '%s\n%s\n' "$LATEST" "$VERSION" | sort -V | tail -n1)
+if [ "$VERSION" = "$LATEST" ] || [ "$HIGHEST" != "$VERSION" ]; then
+  echo "::error::Version $VERSION must be greater than latest published version $LATEST"
+  exit 1
+fi"#,
+                ))
                 .add_step(Step::new("Set Version from Tag").run(
                     r#"VERSION="${GITHUB_REF_NAME#v}"
 cargo install cargo-edit --locked
