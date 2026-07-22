@@ -1,10 +1,10 @@
 [package]
 name = "gh-workflow-tailcall"
-version = "0.5.7"
+version = "0.9.0"
 edition = "2021"
 
 
-description = "macros for gh-workflow"
+description = "Tailcall standard workflows for gh-workflow"
 license = "Apache-2.0"
 documentation = "https://docs.rs/gh-workflow"
 homepage = "https://github.com/tailcallhq/gh-workflow"
@@ -13,7 +13,7 @@ keywords = ["github", "actions", "workflow", "generator"]
 
 [dependencies]
 derive_setters = { workspace = true }
-gh-workflow = { path = "../gh-workflow", version = "0.8.1" }
+gh-workflow = { path = "../gh-workflow", version = "0.9.0" }
 heck = { workspace = true }
 
 [dev-dependencies]
