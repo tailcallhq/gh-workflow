@@ -13,7 +13,14 @@ use gh_workflow::{Workflow as GHWorkflow, *};
 /// Returns an error if the workflow file cannot be generated or is outdated
 /// on CI.
 pub fn generate_release_drafter() -> Result<()> {
-    let workflow = GHWorkflow::new("Release Drafter")
+    Generate::new(release_drafter_workflow())
+        .name("release-drafter.yml")
+        .generate()
+}
+
+/// Builds the release-drafter workflow without writing it.
+pub fn release_drafter_workflow() -> GHWorkflow {
+    GHWorkflow::new("Release Drafter")
         .on(Event {
             push: Some(Push::default().add_branch("main")),
             pull_request_target: Some(
@@ -51,11 +58,7 @@ pub fn generate_release_drafter() -> Result<()> {
                         .add_env(("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}"))
                         .add_with(("config-name", "release-drafter.yml")),
                 ),
-        );
-
-    Generate::new(workflow)
-        .name("release-drafter.yml")
-        .generate()
+        )
 }
 
 /// Generates the release publish workflow that publishes all workspace
@@ -66,7 +69,14 @@ pub fn generate_release_drafter() -> Result<()> {
 /// Returns an error if the workflow file cannot be generated or is outdated
 /// on CI.
 pub fn generate_release_publish() -> Result<()> {
-    let workflow = GHWorkflow::new("Release Publish")
+    Generate::new(release_publish_workflow())
+        .name("release.yml")
+        .generate()
+}
+
+/// Builds the release publish workflow without writing it.
+pub fn release_publish_workflow() -> GHWorkflow {
+    GHWorkflow::new("Release Publish")
         .on(Event {
             release: Some(Release::default().add_type(ReleaseType::Published)),
             ..Event::default()
@@ -98,7 +108,5 @@ cargo publish -p gh-workflow-tailcall --allow-dirty"#,
                             "${{ secrets.CARGO_REGISTRY_TOKEN }}",
                         )),
                 ),
-        );
-
-    Generate::new(workflow).name("release.yml").generate()
+        )
 }
