@@ -4,6 +4,7 @@ use derive_setters::Setters;
 use indexmap::IndexMap;
 use merge::Merge;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::is_default;
 
@@ -898,9 +899,11 @@ pub struct WorkflowCallInput {
     /// Type of the input
     #[serde(rename = "type")]
     pub input_type: String,
-    /// Default value for the input
+    /// Default value for the input.
+    ///
+    /// A string, boolean, or number, matching the input type.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub default: Option<String>,
+    pub default: Option<Value>,
 }
 
 /// Configuration for workflow call output
