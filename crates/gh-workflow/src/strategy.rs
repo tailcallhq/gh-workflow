@@ -15,8 +15,10 @@ pub struct Strategy {
     pub matrix: Option<Value>,
 
     /// Whether to fail fast on errors.
+    ///
+    /// A boolean, or an expression such as `${{ inputs.fail-fast }}`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fail_fast: Option<bool>,
+    pub fail_fast: Option<Value>,
 
     /// The maximum number of jobs to run in parallel.
     #[serde(skip_serializing_if = "Option::is_none")]
