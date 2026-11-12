@@ -96,8 +96,8 @@ impl StandardWorkflow {
         Ok(())
     }
 
-    /// Converts the workflow into a Github workflow.
-    fn to_autofix_workflow(&self) -> GHWorkflow {
+    /// Converts the workflow into the autofix Github workflow.
+    pub fn to_autofix_workflow(&self) -> GHWorkflow {
         // NOTE: The workflow name needs to by `autofix.ci`
         GHWorkflow::new("autofix.ci")
             .add_env(self.workflow_flags())

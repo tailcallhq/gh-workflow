@@ -9,7 +9,8 @@ permissions:
 jobs:
   publish:
     name: publish
-    runs-on: ubuntu-latest
+    runs-on:
+      - sccache
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7

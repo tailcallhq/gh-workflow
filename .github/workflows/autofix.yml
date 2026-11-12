@@ -18,7 +18,8 @@ on:
 jobs:
   lint:
     name: Lint Fix
-    runs-on: ubuntu-latest
+    runs-on:
+      - sccache
     permissions:
       contents: read
     concurrency:
