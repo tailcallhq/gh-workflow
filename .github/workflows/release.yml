@@ -3,7 +3,7 @@ name: Release Publish
 on:
   release:
     types:
-      - published
+    - published
 permissions:
   contents: read
 jobs:
@@ -12,21 +12,21 @@ jobs:
     runs-on:
       - sccache
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-      - name: Setup Rust Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with: 
-          toolchain: stable
-      - name: Set Version from Tag
-        run: |-
-          VERSION="${GITHUB_REF_NAME#v}"
-          cargo install cargo-edit --locked
-          cargo set-version --workspace "$VERSION"
-      - name: Publish to Crates.io
-        run: |-
-          cargo publish -p gh-workflow-macros --allow-dirty
-          cargo publish -p gh-workflow --allow-dirty
-          cargo publish -p gh-workflow-tailcall --allow-dirty
-        env: 
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Setup Rust Toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+    - name: Set Version from Tag
+      run: |-
+        VERSION="${GITHUB_REF_NAME#v}"
+        cargo install cargo-edit --locked
+        cargo set-version --workspace "$VERSION"
+    - name: Publish to Crates.io
+      run: |-
+        cargo publish -p gh-workflow-macros --allow-dirty
+        cargo publish -p gh-workflow --allow-dirty
+        cargo publish -p gh-workflow-tailcall --allow-dirty
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

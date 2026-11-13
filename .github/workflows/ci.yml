@@ -5,16 +5,16 @@ env:
 on:
   pull_request:
     types:
-      - opened
-      - synchronize
-      - reopened
+    - opened
+    - synchronize
+    - reopened
     branches:
-      - main
+    - main
   push:
     branches:
-      - main
+    - main
     tags:
-      - v*
+    - v*
 jobs:
   build:
     name: Build and Test
@@ -23,22 +23,22 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-      - name: Setup Rust Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with: 
-          toolchain: stable
-      - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with: 
-          tool: nextest
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-        with: 
-          cache-all-crates: "true"
-      - name: Cargo Nextest
-        run: cargo nextest run --all-features --workspace
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Setup Rust Toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+    - name: Install nextest
+      uses: taiki-e/install-action@v2
+      with:
+        tool: nextest
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        cache-all-crates: 'true'
+    - name: Cargo Nextest
+      run: cargo nextest run --all-features --workspace
   lint:
     name: Lint
     runs-on:
@@ -46,19 +46,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-      - name: Setup Rust Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with: 
-          toolchain: nightly
-          components: clippy, rustfmt
-          cache: true
-          cache-directories: |-
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-      - name: Cargo Fmt
-        run: cargo +nightly fmt --all --check
-      - name: Cargo Clippy
-        run: cargo +nightly clippy --all-features --workspace -- -D warnings
+    - name: Checkout Code
+      uses: actions/checkout@v7
+    - name: Setup Rust Toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: nightly
+        components: clippy, rustfmt
+        cache: true
+        cache-directories: |-
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+    - name: Cargo Fmt
+      run: cargo +nightly fmt --all --check
+    - name: Cargo Clippy
+      run: cargo +nightly clippy --all-features --workspace -- -D warnings
